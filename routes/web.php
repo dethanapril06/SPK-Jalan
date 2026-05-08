@@ -1,26 +1,23 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProfileController;
-
-// Admin
-use App\Http\Controllers\Admin\AssessmentAspectController as AdminAssessmentAspectController;
-use App\Http\Controllers\Admin\AssessmentReportController as AdminAssessmentReportController;
 use App\Http\Controllers\Admin\AlternativeController as AdminAlternativeController;
+use App\Http\Controllers\Admin\AssessmentAspectController as AdminAssessmentAspectController;
+use App\Http\Controllers\Admin\AssessmentPeriodController;
+use App\Http\Controllers\Admin\AssessmentReportController as AdminAssessmentReportController;
 use App\Http\Controllers\Admin\CriteriaController as AdminCriteriaController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\MfepCalculationController as AdminMfepCalculationController;
+use App\Http\Controllers\Admin\SubCriteriaController as AdminSubCriteriaController;
 use App\Http\Controllers\Admin\SurveyorAssignmentController as AdminSurveyorAssignmentController;
 use App\Http\Controllers\Admin\SurveyorController as AdminSurveyorController;
-use App\Http\Controllers\Admin\SubCriteriaController as AdminSubCriteriaController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\KepalaDinas\AssessmentReportController as KepalaDinasAssessmentReportController;
 use App\Http\Controllers\KepalaDinas\DashboardController as KepalaDinasDashboardController;
 use App\Http\Controllers\KepalaDinas\MfepController as KepalaDinasMfepController;
-
-// Surveyor
-use App\Http\Controllers\Surveyor\DashboardController as SurveyorDashboardController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Surveyor\AssessmentController as SurveyorAssessmentController;
+use App\Http\Controllers\Surveyor\DashboardController as SurveyorDashboardController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => redirect()->route('login'));
 
@@ -95,6 +92,11 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        Route::resource('assessment-periods', AssessmentPeriodController::class);
+        Route::patch('assessment-periods/{assessment_period}/status', [AssessmentPeriodController::class, 'updateStatus'])
+            ->name('assessment-periods.update-status');
+
         Route::get('/reports/assessments', [AdminAssessmentReportController::class, 'index'])
             ->name('reports.assessments');
         Route::get('/reports/assessments/excel', [AdminAssessmentReportController::class, 'exportExcel'])

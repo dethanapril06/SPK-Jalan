@@ -40,6 +40,27 @@
                             </div>
                         </div>
 
+                        <div class="col-md-6 col-12">
+                            <label class="form-label fw-bold">Periode</label>
+                            <div>
+                                @if ($assignment->period)
+                                    <strong>{{ $assignment->period->name }}</strong>
+                                    <div class="small text-muted">{{ $assignment->period->year }}</div>
+                                    <div class="mt-1">
+                                        @if ($assignment->period->status === 'active')
+                                            <span class="badge bg-light-success">Aktif</span>
+                                        @elseif ($assignment->period->status === 'closed')
+                                            <span class="badge bg-light-danger">Ditutup</span>
+                                        @else
+                                            <span class="badge bg-light-secondary">Draft</span>
+                                        @endif
+                                    </div>
+                                @else
+                                    -
+                                @endif
+                            </div>
+                        </div>
+
                         <div class="col-md-4 col-12">
                             <label class="form-label fw-bold">Status</label>
                             <div>{{ strtoupper(str_replace('_', ' ', $assignment->status)) }}</div>

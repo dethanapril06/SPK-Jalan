@@ -24,6 +24,26 @@
         <section class="section">
             <div class="card">
                 <div class="card-body">
+                    @if (isset($activePeriod) && $activePeriod)
+                        <div class="alert alert-light-info mb-3">
+                            <h6 class="mb-1"><i class="bi bi-calendar-event"></i> Periode Aktif</h6>
+                            <div class="small">
+                                <strong>{{ $activePeriod->name }}</strong> ({{ $activePeriod->year }})
+                                @if ($activePeriod->status === 'active')
+                                    <span class="badge bg-light-success ms-2">Aktif</span>
+                                @elseif ($activePeriod->status === 'closed')
+                                    <span class="badge bg-light-danger ms-2">Ditutup</span>
+                                @endif
+                            </div>
+                            @if ($activePeriod->start_date || $activePeriod->end_date)
+                                <div class="mt-1 small text-muted">{{ $activePeriod->start_date?->format('d M Y') ?? '-' }}
+                                    — {{ $activePeriod->end_date?->format('d M Y') ?? '-' }}</div>
+                            @endif
+                        </div>
+                    @else
+                        <div class="alert alert-light-warning mb-3">Belum ada periode aktif.</div>
+                    @endif
+
                     <form action="{{ route('admin.assignments.store') }}" method="POST">
                         @csrf
 

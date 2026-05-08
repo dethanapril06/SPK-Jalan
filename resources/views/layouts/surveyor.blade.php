@@ -153,7 +153,8 @@
 
                                         <li>
                                             <p class="text-center py-2 mb-0">
-                                                <a href="{{ route('surveyor.notifications.index') }}">Lihat Semua Notifikasi</a>
+                                                <a href="{{ route('surveyor.notifications.index') }}">Lihat Semua
+                                                    Notifikasi</a>
                                             </p>
                                         </li>
                                     </ul>
@@ -243,65 +244,24 @@
     @stack('scripts')
 
     <script>
-        function cekNotifikasi() {
-            fetch('/notifikasi')
-                .then(res => res.json())
-                .then(data => {
-                    const badge = document.getElementById('notif-badge');
-                    const list = document.getElementById('notif-list');
+        document.addEventListener('DOMContentLoaded', function() {
+            const notifTrigger = document.querySelector('.nav-item.dropdown.me-3 .nav-link');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
-                    badge.style.display = data.length > 0 ? 'inline' : 'none';
-                    badge.textContent = data.length;
+            if (!notifTrigger || !csrfToken) {
+                return;
+            }
 
-                    list.innerHTML = data.length === 0 ?
-                        '<p style="padding:8px; color:#888;">Tidak ada notifikasi baru</p>' :
-                        data.map(n => `
-                    <div style="padding:8px; border-bottom:1px solid #f0f0f0;">
-                        📋 ${n.data.pesan}
-                        <br><small style="color:#aaa;">${n.created_at}</small>
-                    </div>
-                `).join('');
-                });
-        }
-
-        // Polling tiap 10 detik
-        cekNotifikasi();
-        setInterval(cekNotifikasi, 10000);
-
-        // Toggle dropdown & tandai dibaca
-        document.getElementById('notif-bell').onclick = function() {
-            const dropdown = document.getElementById('notif-dropdown');
-            const isOpen = dropdown.style.display === 'block';
-            dropdown.style.display = isOpen ? 'none' : 'block';
-
-            if (!isOpen) {
-                fetch('/notifikasi/baca', {
+            notifTrigger.addEventListener('click', function() {
+                fetch('{{ route('surveyor.notifications.read') }}', {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Content-Type': 'application/json'
                     }
-                }).then(() => {
-                    document.getElementById('notif-badge').style.display = 'none';
+                }).catch(() => {
+                    // Ignore network error; dropdown tetap bisa dibuka oleh Bootstrap.
                 });
-            }
-        };
-
-        // Tutup dropdown kalau klik di luar
-        document.addEventListener('click', function(e) {
-            if (!document.getElementById('notif-bell').contains(e.target)) {
-                document.getElementById('notif-dropdown').style.display = 'none';
-            }
-        });
-    </script>
-
-    <script>
-        document.querySelector('.nav-item.dropdown .nav-link').addEventListener('click', function() {
-            fetch('{{ route('surveyor.notifications.read') }}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Content-Type': 'application/json'
-                }
             });
         });
     </script>

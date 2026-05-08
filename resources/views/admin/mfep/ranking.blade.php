@@ -16,6 +16,19 @@
                     <a href="{{ route('admin.mfep.create') }}" class="btn btn-sm btn-primary mb-2">
                         <i class="bi bi-calculator"></i> Hitung Skor Baru
                     </a>
+                    <form method="GET" action="{{ route('admin.mfep.ranking') }}" class="d-inline-block ms-2">
+                        <div class="input-group input-group-sm">
+                            <select name="period_id" class="form-select form-select-sm">
+                                <option value="">-- Semua Periode --</option>
+                                @foreach ($periods as $p)
+                                    <option value="{{ $p->id }}" @selected(isset($selectedPeriodId) && $selectedPeriodId == $p->id)>
+                                        {{ $p->name }} ({{ $p->year }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            <button class="btn btn-outline-primary btn-sm" type="submit">Filter</button>
+                        </div>
+                    </form>
                 </div>
                 <div class="col-12 col-md-6 order-md-2 order-first">
                     <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">

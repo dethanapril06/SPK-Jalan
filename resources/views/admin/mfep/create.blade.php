@@ -54,6 +54,25 @@
                             <form action="{{ route('admin.mfep.store') }}" method="POST">
                                 @csrf
 
+                                @if (isset($activePeriod) && $activePeriod)
+                                    <div class="alert alert-light-info mb-4">
+                                        <h6 class="mb-1"><i class="bi bi-calendar-event"></i> Periode Aktif</h6>
+                                        <div class="small">
+                                            <strong>{{ $activePeriod->name }}</strong> ({{ $activePeriod->year }})
+                                            <span class="ms-2 badge bg-light-success">Aktif</span>
+                                        </div>
+                                        <div class="small text-muted mt-1">
+                                            {{ $activePeriod->start_date?->format('d M Y') ?? '-' }} —
+                                            {{ $activePeriod->end_date?->format('d M Y') ?? '-' }}</div>
+                                    </div>
+                                @else
+                                    <div class="alert alert-light-danger mb-4">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        Tidak ada periode aktif. Aktifkan periode terlebih dahulu sebelum melakukan
+                                        perhitungan.
+                                    </div>
+                                @endif
+
                                 <div class="mb-4">
                                     <label for="name" class="form-label">
                                         <span class="text-danger">*</span> Nama Perhitungan
@@ -102,7 +121,8 @@
                                 @endif
 
                                 <div class="d-flex gap-2">
-                                    <button type="submit" class="btn btn-primary">
+                                    <button type="submit" class="btn btn-primary"
+                                        @if (!isset($activePeriod) || !$activePeriod) disabled @endif>
                                         <i class="bi bi-calculator"></i> Mulai Perhitungan
                                     </button>
                                     <a href="{{ route('admin.mfep.ranking') }}" class="btn btn-secondary">

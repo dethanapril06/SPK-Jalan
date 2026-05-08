@@ -16,6 +16,7 @@ class SurveyorAssignment extends Model
     protected $table = 'surveyor_assignments';
 
     protected $fillable = [
+        'period_id',
         'surveyor_id',
         'alternative_id',
         'assigned_by_user_id',
@@ -42,6 +43,11 @@ class SurveyorAssignment extends Model
     public function alternative(): BelongsTo
     {
         return $this->belongsTo(Alternative::class);
+    }
+
+    public function period(): BelongsTo
+    {
+        return $this->belongsTo(AssessmentPeriod::class, 'period_id');
     }
 
     public function assignedByUser(): BelongsTo

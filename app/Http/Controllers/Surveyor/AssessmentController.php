@@ -7,10 +7,17 @@ use App\Models\Assessment;
 use App\Models\AssessmentAspect;
 use App\Models\SubCriteria;
 use App\Models\SurveyorAssignment;
+use App\Services\AssessmentPhotoService;
 use Illuminate\Http\Request;
 
 class AssessmentController extends Controller
 {
+    private AssessmentPhotoService $photoService;
+
+    public function __construct(AssessmentPhotoService $photoService)
+    {
+        $this->photoService = $photoService;
+    }
     /**
      * Show form untuk input penilaian per sub-kriteria
      */
@@ -26,10 +33,14 @@ class AssessmentController extends Controller
             abort(403, 'Anda tidak memiliki akses ke tugas ini.');
         }
 
+        // Pastikan periode masih aktif
+        if (! $assignment->period || ! $assignment->period->isActive()) {
+            return back()->with('error', 'Periode penilaian untuk tugas ini sudah tidak aktif.');
+        }
+
         $assignment->load(['alternative']);
 
-        // Cek apakah ada penugasan yang aktif
-        if (!in_array($assignment->status, ['assigned', 'in_progress'])) {
+        if (! in_array($assignment->status, ['assigned', 'in_progress'])) {
             return back()->with('error', 'Penugasan sudah diselesaikan.');
         }
 
@@ -51,26 +62,32 @@ class AssessmentController extends Controller
             abort(403, 'Anda tidak memiliki akses ke tugas ini.');
         }
 
-        $assignment->load(['alternative']);
+        // Pastikan periode masih aktif
+        if (! $assignment->period || ! $assignment->period->isActive()) {
+            return back()->with('error', 'Periode penilaian untuk tugas ini sudah tidak aktif.');
+        }
+
+        $assignment->load(['alternative', 'period']);
 
         $subCriteriaId = $request->query('sub_criteria_id');
-        $subCriteria = SubCriteria::findOrFail($subCriteriaId);
+        $subCriteria   = SubCriteria::findOrFail($subCriteriaId);
         $subCriteria->load(['criteria', 'assessmentAspects']);
 
-        // Cari assessment yang sudah ada
+        // Cari assessment yang sudah ada — scoped ke periode assignment ini
         $existingAssessment = Assessment::where('surveyor_id', $surveyor->id)
             ->where('alternative_id', $assignment->alternative_id)
             ->where('sub_criteria_id', $subCriteriaId)
+            ->where('period_id', $assignment->period_id)
             ->first();
 
         $aspects = $subCriteria->assessmentAspects()->orderBy('order')->get();
 
         return view('surveyor.assessment.edit', [
-            'assignment' => $assignment,
-            'surveyor' => $surveyor,
+            'assignment'  => $assignment,
+            'surveyor'    => $surveyor,
             'subCriteria' => $subCriteria,
-            'assessment' => $existingAssessment,
-            'aspects' => $aspects,
+            'assessment'  => $existingAssessment,
+            'aspects'     => $aspects,
         ]);
     }
 
@@ -89,52 +106,73 @@ class AssessmentController extends Controller
             abort(403, 'Anda tidak memiliki akses ke tugas ini.');
         }
 
+        // Pastikan periode masih aktif
+        if (! $assignment->period || ! $assignment->period->isActive()) {
+            return back()->with('error', 'Periode penilaian untuk tugas ini sudah tidak aktif.');
+        }
+
         $validated = $request->validate([
-            'sub_criteria_id' => ['required', 'integer', 'exists:sub_criteria,id'],
+            'sub_criteria_id'      => ['required', 'integer', 'exists:sub_criteria,id'],
             'assessment_aspect_id' => ['required', 'integer', 'exists:assessment_aspects,id'],
-            'notes' => ['nullable', 'string'],
+            'notes'                => ['nullable', 'string'],
+            'photo'                => ['nullable', 'file', 'image', 'max:10240', 'mimes:jpg,jpeg,png,gif,webp'],
         ]);
 
-        // Cek sub-kriteria valid untuk alternative ini
         $subCriteria = SubCriteria::findOrFail($validated['sub_criteria_id']);
-        $aspect = AssessmentAspect::findOrFail($validated['assessment_aspect_id']);
+        $aspect      = AssessmentAspect::findOrFail($validated['assessment_aspect_id']);
 
-        if ((int)$aspect->sub_criteria_id !== (int)$subCriteria->id) {
+        if ((int) $aspect->sub_criteria_id !== (int) $subCriteria->id) {
             return back()->withErrors(['assessment_aspect_id' => 'Aspek tidak sesuai dengan sub-kriteria.']);
         }
 
-        // Cek atau buat assessment
+        // Simpan assessment — scoped ke period_id dari assignment
         $assessment = Assessment::updateOrCreate(
             [
-                'surveyor_id' => $surveyor->id,
-                'alternative_id' => $assignment->alternative_id,
+                'surveyor_id'     => $surveyor->id,
+                'alternative_id'  => $assignment->alternative_id,
                 'sub_criteria_id' => $validated['sub_criteria_id'],
+                'period_id'       => $assignment->period_id,
             ],
             [
                 'assessment_aspect_id' => $validated['assessment_aspect_id'],
-                'notes' => $validated['notes'] ?? null,
-                'assessed_at' => now(),
+                'notes'                => $validated['notes'] ?? null,
+                'assessed_at'          => now(),
             ]
         );
+
+        // Handle photo upload jika ada
+        if ($request->hasFile('photo')) {
+            try {
+                $photoPath = $this->photoService->upload($assessment, $request->file('photo'));
+                $assessment->update([
+                    'photo_path' => $photoPath,
+                    'photo_uploaded_at' => now(),
+                ]);
+            } catch (\Exception $e) {
+                return back()->withErrors(['photo' => $e->getMessage()])
+                    ->withInput();
+            }
+        }
 
         // Update status assignment jika masih assigned
         if ($assignment->status === 'assigned') {
             $assignment->update([
-                'status' => 'in_progress',
+                'status'     => 'in_progress',
                 'started_at' => $assignment->started_at ?? now(),
             ]);
         }
 
-        // Cek apakah semua sub-kriteria sudah dinilai
-        $totalSubCriteria = SubCriteria::count();
+        // Cek apakah semua sub-kriteria sudah dinilai (scoped ke periode ini)
+        $totalSubCriteria     = SubCriteria::count();
         $completedSubCriteria = Assessment::where('surveyor_id', $surveyor->id)
             ->where('alternative_id', $assignment->alternative_id)
+            ->where('period_id', $assignment->period_id)
             ->distinct('sub_criteria_id')
             ->count();
 
         if ($completedSubCriteria >= $totalSubCriteria) {
             $assignment->update([
-                'status' => 'submitted',
+                'status'       => 'submitted',
                 'submitted_at' => now(),
             ]);
 

@@ -12,6 +12,7 @@ class MfepCalculation extends Model
     protected $table = 'mfep_calculations';
 
     protected $fillable = [
+        'period_id',
         'code',
         'name',
         'description',

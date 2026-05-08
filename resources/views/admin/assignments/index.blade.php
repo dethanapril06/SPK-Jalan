@@ -47,6 +47,25 @@
                         </div>
                     @endif
 
+                    <div class="mb-3 d-flex gap-2 flex-wrap">
+                        <form method="GET" action="{{ route('admin.assignments.index') }}"
+                            class="d-flex gap-2 align-items-center">
+                            <div>
+                                <select name="period_id" class="form-select form-select-sm">
+                                    <option value="">-- Semua Periode --</option>
+                                    @foreach ($periods as $period)
+                                        <option value="{{ $period->id }}" @selected(request('period_id') == $period->id)>
+                                            {{ $period->name }} ({{ $period->year }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Filter</button>
+                            <a href="{{ route('admin.assignments.index') }}"
+                                class="btn btn-sm btn-outline-secondary">Reset</a>
+                        </form>
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table table-striped" id="table1">
                             <thead>
@@ -54,6 +73,7 @@
                                     <th>No</th>
                                     <th>Surveyor</th>
                                     <th>Alternatif</th>
+                                    <th>Periode</th>
                                     <th>Status</th>
                                     <th>Jatuh Tempo</th>
                                     <th>Ditetapkan</th>
@@ -71,6 +91,24 @@
                                         <td>
                                             <div class="fw-bold">{{ $item->alternative?->name ?? '-' }}</div>
                                             <small class="text-muted">{{ $item->alternative?->code ?? '-' }}</small>
+                                        </td>
+
+                                        <td>
+                                            @if ($item->period)
+                                                <div class="fw-bold">{{ $item->period->name }}</div>
+                                                <small class="text-muted">{{ $item->period->year }}</small>
+                                                <div class="mt-1">
+                                                    @if ($item->period->status === 'active')
+                                                        <span class="badge bg-light-success">Aktif</span>
+                                                    @elseif ($item->period->status === 'closed')
+                                                        <span class="badge bg-light-danger">Ditutup</span>
+                                                    @else
+                                                        <span class="badge bg-light-secondary">Draft</span>
+                                                    @endif
+                                                </div>
+                                            @else
+                                                -
+                                            @endif
                                         </td>
                                         <td>
                                             @php
@@ -112,7 +150,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center">Belum ada data penugasan.</td>
+                                        <td colspan="8" class="text-center">Belum ada data penugasan.</td>
                                     </tr>
                                 @endforelse
                             </tbody>

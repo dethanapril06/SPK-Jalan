@@ -82,21 +82,31 @@
 
                                     <div class="list-group list-group-sm">
                                         @foreach ($items as $item)
-                                            <a href="{{ route('surveyor.assessments.edit', $assignment) }}?sub_criteria_id={{ $item->id }}"
-                                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                                <div class="flex-grow-1">
-                                                    <strong>{{ $item->code ?? 'K' }}</strong> - {{ $item->name }}
+                                            @if ($assignment->period && $assignment->period->status === 'closed')
+                                                <div
+                                                    class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <div class="flex-grow-1">
+                                                        <strong>{{ $item->code ?? 'K' }}</strong> - {{ $item->name }}
+                                                    </div>
+                                                    <span class="badge bg-light-danger">Periode Ditutup</span>
                                                 </div>
-                                                @if ($item->is_completed)
-                                                    <span class="badge bg-success">
-                                                        <i class="bi bi-check"></i> Selesai
-                                                    </span>
-                                                @else
-                                                    <span class="badge bg-light">
-                                                        <i class="bi bi-pencil"></i> Kerjakan
-                                                    </span>
-                                                @endif
-                                            </a>
+                                            @else
+                                                <a href="{{ route('surveyor.assessments.edit', $assignment) }}?sub_criteria_id={{ $item->id }}"
+                                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                                    <div class="flex-grow-1">
+                                                        <strong>{{ $item->code ?? 'K' }}</strong> - {{ $item->name }}
+                                                    </div>
+                                                    @if ($item->is_completed)
+                                                        <span class="badge bg-success">
+                                                            <i class="bi bi-check"></i> Selesai
+                                                        </span>
+                                                    @else
+                                                        <span class="badge bg-light">
+                                                            <i class="bi bi-pencil"></i> Kerjakan
+                                                        </span>
+                                                    @endif
+                                                </a>
+                                            @endif
                                         @endforeach
                                     </div>
                                 </div>
@@ -125,6 +135,25 @@
                                 @endphp
                                 <p class="mb-0"><span class="badge bg-{{ $statusBadge }}">{{ $statusLabel }}</span>
                                 </p>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small text-muted">Periode</label>
+                                @if ($assignment->period)
+                                    <p class="mb-0 fw-bold">{{ $assignment->period->name }}
+                                        ({{ $assignment->period->year }})</p>
+                                    <div class="mt-1">
+                                        @if ($assignment->period->status === 'closed')
+                                            <span class="badge bg-light-danger">Ditutup</span>
+                                        @elseif ($assignment->period->status === 'active')
+                                            <span class="badge bg-light-success">Aktif</span>
+                                        @else
+                                            <span class="badge bg-light-secondary">Draft</span>
+                                        @endif
+                                    </div>
+                                @else
+                                    <p class="mb-0 text-muted">-</p>
+                                @endif
                             </div>
 
                             <div class="mb-3">

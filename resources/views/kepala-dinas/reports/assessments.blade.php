@@ -130,6 +130,7 @@
                                         <th>Kriteria</th>
                                         <th>Sub Kriteria</th>
                                         <th>Aspek</th>
+                                        <th>Dokumentasi</th>
                                         <th>Nilai</th>
                                         <th>Catatan</th>
                                         <th>Dinilai Pada</th>
@@ -152,6 +153,20 @@
                                             <td>{{ $assessment->subCriteria?->criteria?->name ?? '-' }}</td>
                                             <td>{{ $assessment->subCriteria?->name ?? '-' }}</td>
                                             <td>{{ $assessment->assessmentAspect?->name ?? '-' }}</td>
+                                            <td>
+                                                @if ($assessment->photo_path)
+                                                    <a href="{{ $assessment->getPhotoUrl() }}" target="_blank"
+                                                        rel="noopener noreferrer" class="d-inline-block">
+                                                        <img src="{{ $assessment->getPhotoUrl() }}"
+                                                            alt="Foto penilaian {{ $assessment->alternative?->name ?? '' }}"
+                                                            class="rounded border"
+                                                            style="width: 72px; height: 72px; object-fit: cover;">
+                                                    </a>
+                                                    <div class="small text-muted mt-1">Klik untuk lihat</div>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </td>
                                             <td>{{ $assessment->assessmentAspect?->value ?? '-' }}</td>
                                             <td>{{ $assessment->notes ?: '-' }}</td>
                                             <td>{{ $assessment->assessed_at?->format('d-m-Y H:i') ?? '-' }}</td>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AssessmentPeriod;
 use App\Models\MfepCalculation;
 use App\Models\MfepResult;
 use App\Services\MfepCalculationService;
@@ -22,13 +23,20 @@ class MfepCalculationController extends Controller
      */
     public function ranking(Request $request): View
     {
+        $periods = AssessmentPeriod::orderByDesc('year')->get();
+
+        // Default ke periode aktif, atau bisa pilih manual
+        $selectedPeriodId = $request->input('period_id')
+            ?? AssessmentPeriod::where('status', 'active')->value('id');
+
         $calculations = MfepCalculation::where('status', 'finalized')
+            ->when($selectedPeriodId, fn ($q) => $q->where('period_id', $selectedPeriodId))
             ->orderByDesc('finalized_at')
             ->paginate(10);
 
         $selectedCalculationId = $request->input('calculation_id');
-        $results = collect();
-        $selectedCalculation = null;
+        $results               = collect();
+        $selectedCalculation   = null;
 
         if ($selectedCalculationId) {
             $selectedCalculation = MfepCalculation::find($selectedCalculationId);
@@ -41,9 +49,11 @@ class MfepCalculationController extends Controller
         }
 
         return view('admin.mfep.ranking', [
-            'calculations' => $calculations,
-            'results' => $results,
+            'calculations'        => $calculations,
+            'results'             => $results,
             'selectedCalculation' => $selectedCalculation,
+            'periods'             => $periods,
+            'selectedPeriodId'    => $selectedPeriodId,
         ]);
     }
 
@@ -52,10 +62,12 @@ class MfepCalculationController extends Controller
      */
     public function create(): View
     {
+        $activePeriod    = AssessmentPeriod::where('status', 'active')->first();
         $lastCalculation = MfepCalculation::orderByDesc('id')->first();
 
         return view('admin.mfep.create', [
             'lastCalculation' => $lastCalculation,
+            'activePeriod'    => $activePeriod,
         ]);
     }
 
@@ -64,30 +76,38 @@ class MfepCalculationController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $activePeriod = AssessmentPeriod::where('status', 'active')->first();
+
+        if (! $activePeriod) {
+            return back()->with('error', 'Tidak ada periode penilaian yang sedang aktif. Aktifkan periode terlebih dahulu.');
+        }
+
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name'        => 'required|string|max:255',
             'description' => 'nullable|string',
         ]);
 
-        // Create calculation record
+        // Jika sudah ada perhitungan untuk periode aktif, hapus agar tidak menumpuk
+        MfepCalculation::where('period_id', $activePeriod->id)->delete();
+
         $mfepCalculation = MfepCalculation::create([
-            'code' => 'MFEP-' . now()->format('YmdHis'),
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? null,
-            'calculation_date' => now()->toDateString(),
-            'status' => 'draft',
+            'code'                  => 'MFEP-' . now()->format('YmdHis'),
+            'name'                  => $validated['name'],
+            'description'           => $validated['description'] ?? null,
+            'calculation_date'      => now()->toDateString(),
+            'status'                => 'draft',
+            'period_id'             => $activePeriod->id,
             'calculated_by_user_id' => auth()->id(),
         ]);
 
         try {
-            // Execute calculation
             $this->calculationService->calculate($mfepCalculation->id);
 
             return redirect()->route('admin.mfep.ranking', ['calculation_id' => $mfepCalculation->id])
                 ->with('success', 'Perhitungan MFEP berhasil dilakukan!');
         } catch (\Exception $e) {
             $mfepCalculation->delete();
-            
+
             return back()
                 ->withInput()
                 ->with('error', 'Gagal melakukan perhitungan: ' . $e->getMessage());
@@ -99,6 +119,8 @@ class MfepCalculationController extends Controller
      */
     public function show(MfepCalculation $calculation): View
     {
+        $calculation->load('period');
+
         $results = MfepResult::where('mfep_calculation_id', $calculation->id)
             ->with(['alternative', 'details.criteria', 'details.subCriteria', 'details.assessmentAspect'])
             ->orderBy('rank')
@@ -106,7 +128,7 @@ class MfepCalculationController extends Controller
 
         return view('admin.mfep.show', [
             'calculation' => $calculation,
-            'results' => $results,
+            'results'     => $results,
         ]);
     }
 
@@ -115,6 +137,8 @@ class MfepCalculationController extends Controller
      */
     public function exportPdf(MfepCalculation $calculation)
     {
+        $calculation->load('period');
+
         $results = MfepResult::where('mfep_calculation_id', $calculation->id)
             ->with(['alternative', 'details.criteria'])
             ->orderBy('rank')
@@ -122,11 +146,11 @@ class MfepCalculationController extends Controller
 
         $pdf = Pdf::loadView('admin.mfep.show-pdf', [
             'calculation' => $calculation,
-            'results' => $results,
+            'results'     => $results,
             'generatedAt' => now(),
         ])->setPaper('a4', 'landscape');
 
-        return $pdf->download('mfep-'.$calculation->code.'-'.now()->format('Ymd-His').'.pdf');
+        return $pdf->download('mfep-' . $calculation->code . '-' . now()->format('Ymd-His') . '.pdf');
     }
 
     /**

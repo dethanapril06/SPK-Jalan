@@ -89,6 +89,13 @@
 
                         <li class="sidebar-title">Master Data</li>
 
+                        <li class="sidebar-item {{ request()->routeIs('admin.assessment-periods.*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.assessment-periods.index') }}" class="sidebar-link">
+                                <i class="bi bi-calendar-check-fill"></i>
+                                <span>Periode Penilaian</span>
+                            </a>
+                        </li>
+
                         <li class="sidebar-item {{ request()->routeIs('admin.criteria.*') ? 'active' : '' }}">
                             <a href="{{ route('admin.criteria.index') }}" class="sidebar-link">
                                 <i class="bi bi-diagram-3-fill"></i>

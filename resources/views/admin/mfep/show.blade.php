@@ -56,6 +56,10 @@
                                 <td>{{ $calculation->code }}</td>
                             </tr>
                             <tr>
+                                <th>Periode</th>
+                                <td>{{ $calculation->period?->name ?? '-' }}</td>
+                            </tr>
+                            <tr>
                                 <th>Status</th>
                                 <td>
                                     <span

@@ -118,6 +118,12 @@
                 <td>{{ $calculation->calculation_date?->format('d-m-Y') ?? '-' }}</td>
             </tr>
             <tr>
+                <th>Periode</th>
+                <td>{{ $calculation->period?->name ?? '-' }}</td>
+                <th></th>
+                <td></td>
+            </tr>
+            <tr>
                 <th>Selesai pada</th>
                 <td>{{ $calculation->finalized_at?->format('d-m-Y H:i') ?? '-' }}</td>
                 <th>Dihitung oleh</th>

@@ -41,7 +41,8 @@
                                 <hr>
                             @endif
 
-                            <form action="{{ route('surveyor.assessments.update', $assignment) }}" method="POST">
+                            <form action="{{ route('surveyor.assessments.update', $assignment) }}" method="POST"
+                                enctype="multipart/form-data">
                                 @csrf
                                 @method('PUT')
 
@@ -84,6 +85,16 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+
+                                <hr>
+
+                                <!-- Photo Upload Component -->
+                                @include('components.assessment-photo-upload', [
+                                    'fieldId' => 'assessment_photo',
+                                    'assessment' => $assessment,
+                                ])
+
+                                <hr>
 
                                 <div class="d-flex gap-2 justify-content-end">
                                     <a href="{{ route('surveyor.task.show', $assignment) }}"

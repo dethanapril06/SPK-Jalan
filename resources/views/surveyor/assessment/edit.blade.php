@@ -58,7 +58,7 @@
                                                         class="form-check-input @error('assessment_aspect_id') is-invalid @enderror"
                                                         type="radio" name="assessment_aspect_id"
                                                         id="aspect_{{ $aspect->id }}" value="{{ $aspect->id }}"
-                                                        @checked(optional($assessment)->assessment_aspect_id === $aspect->id)>
+                                                        @checked(old('assessment_aspect_id', optional($assessment)->assessment_aspect_id) == $aspect->id)>
                                                     <label class="form-check-label cursor-pointer"
                                                         for="aspect_{{ $aspect->id }}">
                                                         <strong>{{ $aspect->name }}</strong>

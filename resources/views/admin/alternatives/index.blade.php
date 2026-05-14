@@ -57,7 +57,6 @@
                                     <th>Kode</th>
                                     <th>Nama Alternatif</th>
                                     <th>Lokasi</th>
-                                    <th>Urutan</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -68,7 +67,6 @@
                                         <td>{{ $item->code }}</td>
                                         <td>{{ $item->name }}</td>
                                         <td>{{ $item->location ?: '-' }}</td>
-                                        <td>{{ $item->order }}</td>
                                         <td>
                                             <div class="d-flex gap-2">
                                                 <a href="{{ route('admin.alternatives.show', $item) }}"

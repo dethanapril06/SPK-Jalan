@@ -58,7 +58,7 @@
                                     <th>Kode</th>
                                     <th>Sub Kriteria</th>
                                     <th>Kriteria</th>
-                                    <th>Urutan</th>
+                                    <th>Deskripsi</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -69,7 +69,7 @@
                                         <td>{{ $item->code }}</td>
                                         <td>{{ $item->name }}</td>
                                         <td>{{ $item->criteria?->name ?? '-' }}</td>
-                                        <td>{{ $item->order ?? '-' }}</td>
+                                        <td>{{ $item->description ?? '-' }}</td>
                                         <td>
                                             <div class="d-flex gap-2">
                                                 <a href="{{ route('admin.sub-criteria.show', $item) }}"

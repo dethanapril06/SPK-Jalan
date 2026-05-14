@@ -58,7 +58,6 @@
                                     <th>Kode</th>
                                     <th>Nama Kriteria</th>
                                     <th>Bobot</th>
-                                    <th>Urutan</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -69,7 +68,6 @@
                                         <td>{{ $item->code }}</td>
                                         <td>{{ $item->name }}</td>
                                         <td>{{ number_format((float) $item->weight, 2) }}</td>
-                                        <td>{{ $item->order ?? '-' }}</td>
                                         <td>
                                             <div class="d-flex gap-2">
                                                 <a href="{{ route('admin.criteria.show', $item) }}"

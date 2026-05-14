@@ -155,14 +155,30 @@
                                             <td>{{ $assessment->assessmentAspect?->name ?? '-' }}</td>
                                             <td>
                                                 @if ($assessment->photo_path)
-                                                    <a href="{{ $assessment->getPhotoUrl() }}" target="_blank"
-                                                        rel="noopener noreferrer" class="d-inline-block">
-                                                        <img src="{{ $assessment->getPhotoUrl() }}"
-                                                            alt="Foto penilaian {{ $assessment->alternative?->name ?? '' }}"
-                                                            class="rounded border"
-                                                            style="width: 72px; height: 72px; object-fit: cover;">
-                                                    </a>
-                                                    <div class="small text-muted mt-1">Klik untuk lihat</div>
+                                                    @php
+                                                        $photos = is_string($assessment->photo_path)
+                                                            ? json_decode($assessment->photo_path, true)
+                                                            : $assessment->photo_path;
+
+                                                        if (!is_array($photos)) {
+                                                            $photos = [$assessment->photo_path];
+                                                        }
+                                                    @endphp
+
+                                                    <div class="d-flex flex-wrap gap-1">
+                                                        @foreach (array_filter($photos) as $photo)
+                                                            <a href="{{ asset('storage/' . $photo) }}" target="_blank"
+                                                                rel="noopener noreferrer" class="d-inline-block"
+                                                                title="Klik untuk lihat ukuran penuh">
+                                                                <img src="{{ asset('storage/' . $photo) }}"
+                                                                    alt="Foto penilaian {{ $assessment->alternative?->name ?? '' }}"
+                                                                    class="rounded border"
+                                                                    style="width: 50px; height: 50px; object-fit: cover;">
+                                                            </a>
+                                                        @endforeach
+                                                    </div>
+                                                    <div class="small text-muted mt-1">{{ count(array_filter($photos)) }}
+                                                        Foto dilampirkan</div>
                                                 @else
                                                     <span class="text-muted">-</span>
                                                 @endif

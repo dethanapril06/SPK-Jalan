@@ -25,6 +25,7 @@ class Assessment extends Model
 
     protected $casts = [
         'assessed_at' => 'datetime',
+        'photo_path' => 'array',
         'photo_uploaded_at' => 'datetime',
     ];
 

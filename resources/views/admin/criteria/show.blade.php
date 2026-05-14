@@ -48,7 +48,7 @@
                         </div>
 
                         <div class="col-md-4 col-12">
-                            <label class="form-label fw-bold">Urutan</label>
+                            <label class="form-label fw-bold">Urutan Tampil</label>
                             <div>{{ $criteria->order ?? '-' }}</div>
                         </div>
 

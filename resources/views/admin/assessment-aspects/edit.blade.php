@@ -99,7 +99,7 @@
 
                                     <div class="col-md-4 col-12">
                                         <div class="form-group">
-                                            <label for="order">Urutan</label>
+                                            <label for="order">Urutan Tampil</label>
                                             <input type="number" min="1"
                                                 class="form-control @error('order') is-invalid @enderror"
                                                 placeholder="Contoh: 1" id="order" name="order"

@@ -56,6 +56,37 @@ class AssessmentPhotoService
     }
 
     /**
+     * Upload banyak foto penilaian sekaligus
+     *
+     * @param Assessment $assessment
+     * @param array $files
+     * @return array Array berisi path relatif ke file yang di-upload
+     * @throws \Exception
+     */
+    public function uploadMultiple(Assessment $assessment, array $files): array
+    {
+        $storedPaths = [];
+        
+        $year = now()->year;
+        $periodId = $assessment->surveyor_id; 
+        $folderPath = "assessments/{$year}/{$periodId}";
+
+        foreach ($files as $index => $file) {
+            // 1. Validasi tiap file
+            $this->validateFile($file);
+
+            // 2. Generate nama file unik (tambahkan uniqid agar nama tidak bentrok)
+            $extension = $file->getClientOriginalExtension();
+            $filename = "assessment_{$assessment->id}_" . time() . "_" . uniqid() . ".{$extension}";
+
+            // 3. Store file
+            $storedPaths[] = $file->storeAs($folderPath, $filename, self::DISK);
+        }
+
+        return $storedPaths;
+    }
+
+    /**
      * Validasi file upload
      *
      * @throws \Exception

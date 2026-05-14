@@ -115,7 +115,8 @@ class AssessmentController extends Controller
             'sub_criteria_id'      => ['required', 'integer', 'exists:sub_criteria,id'],
             'assessment_aspect_id' => ['required', 'integer', 'exists:assessment_aspects,id'],
             'notes'                => ['nullable', 'string'],
-            'photo'                => ['nullable', 'file', 'image', 'max:10240', 'mimes:jpg,jpeg,png,gif,webp'],
+            'photos'               => ['nullable', 'array', 'max:5'],
+            'photos.*'             => ['file', 'image', 'max:10240', 'mimes:jpg,jpeg,png,gif,webp'],
         ]);
 
         $subCriteria = SubCriteria::findOrFail($validated['sub_criteria_id']);
@@ -141,15 +142,24 @@ class AssessmentController extends Controller
         );
 
         // Handle photo upload jika ada
-        if ($request->hasFile('photo')) {
+        if ($request->hasFile('photos')) {
             try {
-                $photoPath = $this->photoService->upload($assessment, $request->file('photo'));
+                $newPhotoPaths = $this->photoService->uploadMultiple($assessment, $request->file('photos'));
+                
+                // Ambil foto yang sudah ada di database (jika ingin menambah, bukan menimpa)
+                // Jika ingin selalu menimpa dengan yang baru, cukup gunakan: $allPhotos = $newPhotoPaths;
+                $existingPhotos = is_string($assessment->photo_path) ? json_decode($assessment->photo_path, true) : $assessment->photo_path;
+                $existingPhotos = is_array($existingPhotos) ? $existingPhotos : [];
+                
+                // Gabungkan foto lama dan baru
+                $allPhotos = array_merge($existingPhotos, $newPhotoPaths);
+
                 $assessment->update([
-                    'photo_path' => $photoPath,
+                    'photo_path' => json_encode($allPhotos), // Simpan sebagai format JSON
                     'photo_uploaded_at' => now(),
                 ]);
             } catch (\Exception $e) {
-                return back()->withErrors(['photo' => $e->getMessage()])
+                return back()->withErrors(['photos' => $e->getMessage()])
                     ->withInput();
             }
         }

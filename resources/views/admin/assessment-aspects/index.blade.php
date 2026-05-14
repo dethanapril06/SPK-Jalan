@@ -60,7 +60,6 @@
                                     <th>Sub Kriteria</th>
                                     <th>Aspek</th>
                                     <th>Nilai</th>
-                                    <th>Urutan</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -73,7 +72,6 @@
                                         <td>{{ $item->subCriteria?->code }} - {{ $item->subCriteria?->name }}</td>
                                         <td>{{ $item->name }}</td>
                                         <td>{{ $item->value }}</td>
-                                        <td>{{ $item->order ?? '-' }}</td>
                                         <td>
                                             <div class="d-flex gap-2">
                                                 <a href="{{ route('admin.assessment-aspects.show', $item) }}"

@@ -130,17 +130,18 @@ class AssessmentPeriodController extends Controller
 
         $newStatus = $request->status;
 
-        // Guard: tidak bisa mundur dari closed
-        if ($assessmentPeriod->isClosed()) {
-            return redirect()->back()->with('error', 'Periode yang sudah ditutup tidak dapat diubah statusnya.');
-        }
-
         // Guard: tidak bisa langsung dari draft ke closed
         if ($assessmentPeriod->isDraft() && $newStatus === 'closed') {
             return redirect()->back()->with('error', 'Periode draft tidak dapat langsung ditutup. Aktifkan terlebih dahulu.');
         }
 
-        // Jika mengaktifkan periode ini, pastikan tidak ada periode active lain
+        // Guard: closed hanya bisa kembali ke active, tidak ke draft
+        if ($assessmentPeriod->isClosed() && $newStatus === 'draft') {
+            return redirect()->back()->with('error', 'Periode yang sudah ditutup hanya dapat diaktifkan kembali, tidak bisa dikembalikan ke draft.');
+        }
+
+        // Jika mengaktifkan periode ini (dari draft maupun closed),
+        // pastikan tidak ada periode active lain
         if ($newStatus === 'active') {
             $alreadyActive = AssessmentPeriod::where('status', 'active')
                 ->where('id', '!=', $assessmentPeriod->id)

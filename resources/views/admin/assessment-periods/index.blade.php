@@ -121,19 +121,20 @@
                                                     </a>
                                                 @endif
 
-                                                {{-- Tombol Aktifkan (hanya untuk draft) --}}
-                                                @if ($item->isDraft())
+                                                {{-- Tombol Aktifkan (untuk draft dan closed) --}}
+                                                @if ($item->isDraft() || $item->isClosed())
                                                     <form method="POST"
                                                         action="{{ route('admin.assessment-periods.update-status', $item) }}"
-                                                        class="status-form"
-                                                        data-label="diaktifkan"
+                                                        class="status-form" data-label="diaktifkan"
                                                         data-name="{{ $item->name }}">
                                                         @csrf
                                                         @method('PATCH')
                                                         <input type="hidden" name="status" value="active">
-                                                        <button type="submit" class="btn btn-sm btn-outline-success"
-                                                            title="Aktifkan">
-                                                            <i class="bi bi-play-circle"></i>
+                                                        <button type="submit"
+                                                            class="btn btn-sm {{ $item->isClosed() ? 'btn-outline-primary' : 'btn-outline-success' }}"
+                                                            title="{{ $item->isClosed() ? 'Aktifkan Kembali' : 'Aktifkan' }}">
+                                                            <i
+                                                                class="bi bi-{{ $item->isClosed() ? 'arrow-counterclockwise' : 'play-circle' }}"></i>
                                                         </button>
                                                     </form>
                                                 @endif
@@ -142,8 +143,7 @@
                                                 @if ($item->isActive())
                                                     <form method="POST"
                                                         action="{{ route('admin.assessment-periods.update-status', $item) }}"
-                                                        class="status-form"
-                                                        data-label="ditutup"
+                                                        class="status-form" data-label="ditutup"
                                                         data-name="{{ $item->name }}">
                                                         @csrf
                                                         @method('PATCH')
@@ -219,7 +219,7 @@
                         event.preventDefault();
 
                         const label = form.dataset.label;
-                        const name  = form.dataset.name;
+                        const name = form.dataset.name;
 
                         Swal.fire({
                             title: 'Ubah Status Periode?',

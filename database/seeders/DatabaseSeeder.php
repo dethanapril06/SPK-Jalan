@@ -8,6 +8,7 @@ use Database\Seeders\CriteriaSeeder;
 use Database\Seeders\SubCriteriaSeeder;
 use Database\Seeders\SurveyorSeeder;
 use Database\Seeders\UserSeeder;
+use Database\Seeders\PeriodeSeeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -28,6 +29,7 @@ class DatabaseSeeder extends Seeder
             AssessmentAspectSeeder::class,
             AlternativeSeeder::class,
             SurveyorSeeder::class,
+            PeriodeSeeder::class,
         ]);
     }
 }

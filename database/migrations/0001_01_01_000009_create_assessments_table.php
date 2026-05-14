@@ -18,13 +18,13 @@ return new class extends Migration
             $table->foreignId('sub_criteria_id')->constrained('sub_criteria')->cascadeOnDelete();
             $table->foreignId('assessment_aspect_id')->constrained('assessment_aspects')->cascadeOnDelete();
             $table->text('notes')->nullable();
-            $table->json('photo_path')->nullable()->comment('Path foto penilaian di storage');
+            $table->json('photo_path');
             $table->timestamp('photo_uploaded_at')->nullable()->comment('Waktu foto di-upload');
             $table->timestamp('assessed_at')->nullable();
             $table->timestamps();
 
             $table->unique(['surveyor_id', 'alternative_id', 'sub_criteria_id']);
-        });
+        }); 
     }
 
     /**

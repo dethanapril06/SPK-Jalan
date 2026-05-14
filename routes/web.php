@@ -51,7 +51,8 @@ Route::middleware(['auth', 'role:surveyor'])
         Route::resource('assessments', SurveyorAssessmentController::class)
             ->parameters(['assessments' => 'assignment'])
             ->only(['show', 'edit', 'update']);
-        
+        Route::delete('/task/{assignment}/assessment/photo', [SurveyorAssessmentController::class, 'destroyPhoto'])
+            ->name('assessment.photo.destroy');    
         Route::get('/notifications', function () {
             $notifications = auth()->user()->notifications()->latest()->paginate(10);
             auth()->user()->unreadNotifications->markAsRead();

@@ -33,6 +33,13 @@
                                 </div>
                             @endif
 
+                            @if (session('success'))
+                                <div class="alert alert-light-success alert-dismissible fade show" role="alert">
+                                    {{ session('success') }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            @endif
+
                             @if ($subCriteria->description)
                                 <div class="mb-4">
                                     <label class="form-label fw-bold">Deskripsi Sub-Kriteria</label>
@@ -88,10 +95,10 @@
 
                                 <hr>
 
-                                <!-- Photo Upload Component -->
                                 @include('components.assessment-photo-upload', [
                                     'fieldId' => 'assessment_photo',
                                     'assessment' => $assessment,
+                                    'assignment' => $assignment,
                                 ])
 
                                 <hr>
@@ -106,6 +113,7 @@
                                     </button>
                                 </div>
                             </form>
+                            {{-- End form utama --}}
                         </div>
                     </div>
                 </div>
@@ -143,4 +151,6 @@
             </div>
         </section>
     </div>
+
+    @stack('modals')
 @endsection

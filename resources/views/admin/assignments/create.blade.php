@@ -2,6 +2,43 @@
 
 @section('title', 'Tambah Penugasan')
 
+@push('styles')
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .select2-container--default .select2-selection--multiple {
+            border: 1px solid #dce7f1;
+            border-radius: .25rem;
+            min-height: 38px;
+            padding: .2rem .35rem;
+        }
+
+        .select2-container--default.select2-container--focus .select2-selection--multiple {
+            border-color: #435ebe;
+            box-shadow: 0 0 0 .2rem rgba(67, 94, 190, .15);
+        }
+
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: #eef2ff;
+            border: 1px solid #c7d2fe;
+            color: #25396f;
+            padding: .15rem .5rem .15rem 1.25rem;
+        }
+
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: #435ebe;
+            margin-left: .15rem;
+        }
+
+        .select2-container {
+            width: 100% !important;
+        }
+
+        .is-invalid + .select2-container .select2-selection {
+            border-color: #dc3545;
+        }
+    </style>
+@endpush
+
 @section('content')
     <div class="page-heading">
         <div class="page-title mb-3">
@@ -65,16 +102,23 @@
 
                             <div class="col-md-6">
                                 <label class="form-label">Alternatif</label>
-                                <select name="alternative_id"
-                                    class="form-select @error('alternative_id') is-invalid @enderror">
-                                    <option value="">Pilih alternatif</option>
+                                <select name="alternative_ids[]" multiple
+                                    class="form-select assignment-alternatives-select @error('alternative_ids') is-invalid @enderror @error('alternative_ids.*') is-invalid @enderror"
+                                    data-placeholder="Pilih satu atau lebih alternatif">
+                                    @php
+                                        $selectedAlternatives = old('alternative_ids', []);
+                                    @endphp
                                     @foreach ($alternatives as $alternative)
-                                        <option value="{{ $alternative->id }}" @selected(old('alternative_id') == $alternative->id)>
+                                        <option value="{{ $alternative->id }}" @selected(in_array($alternative->id, $selectedAlternatives))>
                                             {{ $alternative->code }} - {{ $alternative->name }}
                                         </option>
                                     @endforeach
                                 </select>
-                                @error('alternative_id')
+                                <div class="form-text">Cari lalu pilih satu atau lebih alternatif.</div>
+                                @error('alternative_ids')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                @error('alternative_ids.*')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -130,3 +174,17 @@
         </section>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('template/assets/extensions/jquery/jquery.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(function() {
+            $('.assignment-alternatives-select').select2({
+                placeholder: $('.assignment-alternatives-select').data('placeholder'),
+                allowClear: true,
+                width: '100%'
+            });
+        });
+    </script>
+@endpush

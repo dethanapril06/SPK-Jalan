@@ -11,8 +11,9 @@ use App\Models\AssessmentPeriod;
 use App\Models\SubCriteria;
 use App\Models\Surveyor;
 use App\Models\SurveyorAssignment;
-use Illuminate\Http\RedirectResponse;
 use App\Notifications\TugasBaru;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 
 class SurveyorAssignmentController extends Controller
 {
@@ -74,19 +75,30 @@ class SurveyorAssignmentController extends Controller
                 ->with('error', 'Tidak ada periode penilaian yang sedang aktif.');
         }
 
-        $assignment = SurveyorAssignment::create([
-            ...$request->validated(),
-            'period_id'          => $activePeriod->id,
-            'assigned_by_user_id' => $request->user()->id,
-            'assigned_at'        => now(),
-        ]);
+        $validated = $request->validated();
+        $alternativeIds = $validated['alternative_ids'];
+        unset($validated['alternative_ids']);
 
-        // Kirim notifikasi ke surveyor
-        $assignment->load('alternative');
-        $assignment->surveyor->user->notify(new TugasBaru($assignment));
+        $assignments = DB::transaction(function () use ($validated, $alternativeIds, $activePeriod, $request) {
+            return collect($alternativeIds)->map(function ($alternativeId) use ($validated, $activePeriod, $request) {
+                return SurveyorAssignment::create([
+                    ...$validated,
+                    'alternative_id'      => $alternativeId,
+                    'period_id'           => $activePeriod->id,
+                    'assigned_by_user_id' => $request->user()->id,
+                    'assigned_at'         => now(),
+                ]);
+            });
+        });
+
+        // Kirim notifikasi ke surveyor untuk setiap alternatif yang ditugaskan.
+        $assignments->each(function (SurveyorAssignment $assignment): void {
+            $assignment->load(['alternative', 'surveyor.user']);
+            $assignment->surveyor?->user?->notify(new TugasBaru($assignment));
+        });
 
         return redirect()->route('admin.assignments.index')
-            ->with('success', 'Surveyor berhasil ditugaskan ke alternatif.');
+            ->with('success', 'Surveyor berhasil ditugaskan ke ' . $assignments->count() . ' alternatif.');
     }
 
     /**

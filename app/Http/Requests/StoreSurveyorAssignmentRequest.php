@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\AssessmentPeriod;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,21 +23,34 @@ class StoreSurveyorAssignmentRequest extends FormRequest
      */
     public function rules(): array
     {
+        $activePeriod = AssessmentPeriod::where('status', 'active')->first();
+
         return [
             'surveyor_id' => ['required', 'integer', 'exists:surveyors,id'],
-            'alternative_id' => [
+            'alternative_ids' => ['required', 'array', 'min:1'],
+            'alternative_ids.*' => [
                 'required',
                 'integer',
+                'distinct',
                 'exists:alternatives,id',
-                Rule::unique('surveyor_assignments')->where(function ($query) {
+                Rule::unique('surveyor_assignments', 'alternative_id')->where(function ($query) use ($activePeriod) {
                     return $query
+                        ->where('period_id', $activePeriod?->id)
                         ->where('surveyor_id', $this->input('surveyor_id'))
-                        ->where('alternative_id', $this->input('alternative_id'));
+                        ->whereIn('alternative_id', $this->input('alternative_ids', []));
                 }),
             ],
             'status' => ['required', Rule::in(['assigned', 'in_progress', 'submitted', 'reviewed'])],
             'due_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'alternative_ids' => 'alternatif',
+            'alternative_ids.*' => 'alternatif',
         ];
     }
 }

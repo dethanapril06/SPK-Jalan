@@ -35,9 +35,7 @@ class StoreSurveyorAssignmentRequest extends FormRequest
                 'exists:alternatives,id',
                 Rule::unique('surveyor_assignments', 'alternative_id')->where(function ($query) use ($activePeriod) {
                     return $query
-                        ->where('period_id', $activePeriod?->id)
-                        ->where('surveyor_id', $this->input('surveyor_id'))
-                        ->whereIn('alternative_id', $this->input('alternative_ids', []));
+                        ->where('period_id', $activePeriod?->id);
                 }),
             ],
             'status' => ['required', Rule::in(['assigned', 'in_progress', 'submitted', 'reviewed'])],
@@ -51,6 +49,13 @@ class StoreSurveyorAssignmentRequest extends FormRequest
         return [
             'alternative_ids' => 'alternatif',
             'alternative_ids.*' => 'alternatif',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'alternative_ids.*.unique' => 'Alternatif ini sudah ditugaskan ke surveyor lain pada periode aktif.',
         ];
     }
 }

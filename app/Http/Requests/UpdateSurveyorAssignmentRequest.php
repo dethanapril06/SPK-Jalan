@@ -34,15 +34,22 @@ class UpdateSurveyorAssignmentRequest extends FormRequest
                 'exists:alternatives,id',
                 Rule::unique('surveyor_assignments')
                     ->ignore($assignment?->id)
-                    ->where(function ($query) {
+                    ->where(function ($query) use ($assignment) {
                         return $query
-                            ->where('surveyor_id', $this->input('surveyor_id'))
+                            ->where('period_id', $assignment?->period_id)
                             ->where('alternative_id', $this->input('alternative_id'));
                     }),
             ],
             'status' => ['required', Rule::in(['assigned', 'in_progress', 'submitted', 'reviewed'])],
             'due_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'alternative_id.unique' => 'Alternatif ini sudah ditugaskan ke surveyor lain pada periode yang sama.',
         ];
     }
 }

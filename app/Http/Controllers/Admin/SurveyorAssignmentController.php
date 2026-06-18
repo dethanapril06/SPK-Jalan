@@ -58,7 +58,13 @@ class SurveyorAssignmentController extends Controller
             ->where('is_active', true)
             ->orderBy('code')
             ->get();
-        $alternatives = Alternative::orderBy('order')->orderBy('code')->get();
+        $assignedAlternativeIds = SurveyorAssignment::where('period_id', $activePeriod->id)
+            ->pluck('alternative_id');
+
+        $alternatives = Alternative::whereNotIn('id', $assignedAlternativeIds)
+            ->orderBy('order')
+            ->orderBy('code')
+            ->get();
 
         return view('admin.assignments.create', compact('surveyors', 'alternatives', 'activePeriod'));
     }
@@ -137,7 +143,14 @@ class SurveyorAssignmentController extends Controller
     {
         $assignment->load(['surveyor.user', 'alternative', 'assignedByUser', 'period']);
         $surveyors   = Surveyor::with('user')->orderBy('code')->get();
-        $alternatives = Alternative::orderBy('order')->orderBy('code')->get();
+        $assignedAlternativeIds = SurveyorAssignment::where('period_id', $assignment->period_id)
+            ->whereKeyNot($assignment->id)
+            ->pluck('alternative_id');
+
+        $alternatives = Alternative::whereNotIn('id', $assignedAlternativeIds)
+            ->orderBy('order')
+            ->orderBy('code')
+            ->get();
 
         return view('admin.assignments.edit', compact('assignment', 'surveyors', 'alternatives'));
     }

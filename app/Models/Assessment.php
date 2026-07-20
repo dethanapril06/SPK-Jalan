@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\AssessmentPeriod;
 use App\Models\Surveyor;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +29,11 @@ class Assessment extends Model
         'photo_path' => 'array',
         'photo_uploaded_at' => 'datetime',
     ];
+
+    public function period(): BelongsTo
+    {
+        return $this->belongsTo(AssessmentPeriod::class, 'period_id');
+    }
 
     public function surveyor(): BelongsTo
     {

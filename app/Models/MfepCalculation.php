@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\AssessmentPeriod;
 use App\Models\MfepResult;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +29,11 @@ class MfepCalculation extends Model
         'started_at' => 'datetime',
         'finalized_at' => 'datetime',
     ];
+
+    public function period(): BelongsTo
+    {
+        return $this->belongsTo(AssessmentPeriod::class, 'period_id');
+    }
 
     public function calculatedByUser(): BelongsTo
     {

@@ -58,27 +58,35 @@
     <div class="header">
         <p class="title">Report Penilaian Surveyor</p>
         <p class="subtitle">Digenerate pada: {{ $generatedAt->format('d-m-Y H:i') }}</p>
-        <p class="subtitle">Total data: {{ $assessments->count() }} baris</p>
+        <p class="subtitle">Total data: {{ $totalCount ?? (is_countable($assessments) ? count($assessments) : 0) }} baris</p>
+        @if (!empty(array_filter($filters ?? [])))
+            <p class="subtitle">Filter aktif diterapkan pada report ini.</p>
+        @endif
     </div>
 
     <table>
         <thead>
             <tr>
                 <th style="width: 4%;">No</th>
+                <th style="width: 10%;">Periode</th>
                 <th style="width: 10%;">Surveyor</th>
-                <th style="width: 13%;">Alternatif</th>
-                <th style="width: 13%;">Kriteria</th>
-                <th style="width: 14%;">Sub Kriteria</th>
-                <th style="width: 14%;">Aspek</th>
-                <th style="width: 6%;">Nilai</th>
-                <th style="width: 16%;">Catatan</th>
-                <th style="width: 10%;">Dinilai Pada</th>
+                <th style="width: 12%;">Alternatif</th>
+                <th style="width: 12%;">Kriteria</th>
+                <th style="width: 12%;">Sub Kriteria</th>
+                <th style="width: 12%;">Aspek</th>
+                <th style="width: 5%;">Nilai</th>
+                <th style="width: 14%;">Catatan</th>
+                <th style="width: 9%;">Dinilai Pada</th>
             </tr>
         </thead>
         <tbody>
             @forelse ($assessments as $assessment)
                 <tr>
                     <td>{{ $loop->iteration }}</td>
+                    <td>
+                        {{ $assessment->period?->name ?? '-' }}
+                        <div class="muted">{{ $assessment->period?->year ?? '-' }}</div>
+                    </td>
                     <td>
                         {{ $assessment->surveyor?->code ?? '-' }}
                         <div class="muted">{{ $assessment->surveyor?->user?->name ?? '-' }}</div>
@@ -96,7 +104,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9">Tidak ada data penilaian.</td>
+                    <td colspan="10">Tidak ada data penilaian.</td>
                 </tr>
             @endforelse
         </tbody>

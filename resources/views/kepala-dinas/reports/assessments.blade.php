@@ -55,7 +55,19 @@
                 </div>
                 <div class="card-body">
                     <form method="GET" action="{{ route('kepala-dinas.reports.assessments') }}" class="row g-3">
-                        <div class="col-12 col-md-3">
+                        <div class="col-12 col-md-4">
+                            <label for="period_id" class="form-label">Periode Penilaian</label>
+                            <select name="period_id" id="period_id" class="form-select">
+                                <option value="">Semua Periode</option>
+                                @foreach ($periods as $period)
+                                    <option value="{{ $period->id }}" @selected((string) $filters['period_id'] === (string) $period->id)>
+                                        {{ $period->name }} ({{ $period->year }}) - {{ ucfirst($period->status) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-4">
                             <label for="surveyor_id" class="form-label">Surveyor</label>
                             <select name="surveyor_id" id="surveyor_id" class="form-select">
                                 <option value="">Semua Surveyor</option>
@@ -67,13 +79,37 @@
                             </select>
                         </div>
 
-                        <div class="col-12 col-md-3">
+                        <div class="col-12 col-md-4">
                             <label for="alternative_id" class="form-label">Alternatif</label>
                             <select name="alternative_id" id="alternative_id" class="form-select">
                                 <option value="">Semua Alternatif</option>
                                 @foreach ($alternatives as $alternative)
                                     <option value="{{ $alternative->id }}" @selected((string) $filters['alternative_id'] === (string) $alternative->id)>
                                         {{ $alternative->code }} - {{ $alternative->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label for="criteria_id" class="form-label">Kriteria</label>
+                            <select name="criteria_id" id="criteria_id" class="form-select">
+                                <option value="">Semua Kriteria</option>
+                                @foreach ($criterias as $criteria)
+                                    <option value="{{ $criteria->id }}" @selected((string) $filters['criteria_id'] === (string) $criteria->id)>
+                                        {{ $criteria->code }} - {{ $criteria->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label for="sub_criteria_id" class="form-label">Sub Kriteria</label>
+                            <select name="sub_criteria_id" id="sub_criteria_id" class="form-select">
+                                <option value="">Semua Sub Kriteria</option>
+                                @foreach ($subCriterias as $sub)
+                                    <option value="{{ $sub->id }}" data-criteria-id="{{ $sub->criteria_id }}" @selected((string) $filters['sub_criteria_id'] === (string) $sub->id)>
+                                        {{ $sub->criteria?->code ?? '' }} - {{ $sub->code }} : {{ $sub->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -125,6 +161,7 @@
                                 <thead>
                                     <tr>
                                         <th>No</th>
+                                        <th>Periode</th>
                                         <th>Surveyor</th>
                                         <th>Alternatif</th>
                                         <th>Kriteria</th>
@@ -140,6 +177,10 @@
                                     @foreach ($assessments as $assessment)
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
+                                            <td>
+                                                <span class="fw-semibold">{{ $assessment->period?->name ?? '-' }}</span>
+                                                <div class="small text-muted">Tahun {{ $assessment->period?->year ?? '-' }}</div>
+                                            </td>
                                             <td>
                                                 {{ $assessment->surveyor?->code ?? '-' }}
                                                 <div class="small text-muted">
@@ -197,3 +238,39 @@
         </section>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const criteriaSelect = document.getElementById('criteria_id');
+        const subCriteriaSelect = document.getElementById('sub_criteria_id');
+
+        if (!criteriaSelect || !subCriteriaSelect) return;
+
+        function filterSubCriteria() {
+            const selectedCriteriaId = criteriaSelect.value;
+            const options = subCriteriaSelect.querySelectorAll('option[data-criteria-id]');
+            let hasVisibleSelected = false;
+
+            options.forEach(option => {
+                if (!selectedCriteriaId || option.dataset.criteriaId === selectedCriteriaId) {
+                    option.hidden = false;
+                    option.style.display = '';
+                    if (option.selected) hasVisibleSelected = true;
+                } else {
+                    option.hidden = true;
+                    option.style.display = 'none';
+                    if (option.selected) option.selected = false;
+                }
+            });
+
+            if (!hasVisibleSelected && subCriteriaSelect.value !== '') {
+                subCriteriaSelect.value = '';
+            }
+        }
+
+        criteriaSelect.addEventListener('change', filterSubCriteria);
+        filterSubCriteria();
+    });
+</script>
+@endpush

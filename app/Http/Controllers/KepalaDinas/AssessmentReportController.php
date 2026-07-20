@@ -4,7 +4,10 @@ namespace App\Http\Controllers\KepalaDinas;
 
 use App\Http\Controllers\Controller;
 use App\Models\Assessment;
+use App\Models\AssessmentPeriod;
 use App\Models\Alternative;
+use App\Models\Criteria;
+use App\Models\SubCriteria;
 use App\Models\Surveyor;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,6 +18,10 @@ class AssessmentReportController extends Controller
 {
     public function index(Request $request)
     {
+        $periods = AssessmentPeriod::orderByDesc('year')
+            ->orderByDesc('id')
+            ->get();
+
         $surveyors = Surveyor::with('user')
             ->orderBy('code')
             ->get();
@@ -22,6 +29,15 @@ class AssessmentReportController extends Controller
         $alternatives = Alternative::query()
             ->orderBy('order')
             ->orderBy('code')
+            ->get();
+
+        $criterias = Criteria::orderBy('order')
+            ->orderBy('code')
+            ->get();
+
+        $subCriterias = SubCriteria::with('criteria')
+            ->orderBy('criteria_id')
+            ->orderBy('order')
             ->get();
 
         $query = $this->buildFilteredQuery($request);
@@ -39,12 +55,18 @@ class AssessmentReportController extends Controller
 
         return view('kepala-dinas.reports.assessments', [
             'assessments' => $assessments,
+            'periods' => $periods,
             'surveyors' => $surveyors,
             'alternatives' => $alternatives,
+            'criterias' => $criterias,
+            'subCriterias' => $subCriterias,
             'summary' => $summary,
             'filters' => [
+                'period_id' => $request->input('period_id'),
                 'surveyor_id' => $request->input('surveyor_id'),
                 'alternative_id' => $request->input('alternative_id'),
+                'criteria_id' => $request->input('criteria_id'),
+                'sub_criteria_id' => $request->input('sub_criteria_id'),
                 'date_from' => $request->input('date_from'),
                 'date_to' => $request->input('date_to'),
             ],
@@ -53,20 +75,20 @@ class AssessmentReportController extends Controller
 
     public function exportExcel(Request $request): StreamedResponse
     {
-        $assessments = $this->buildFilteredQuery($request)
+        $query = $this->buildFilteredQuery($request)
             ->orderByDesc('assessed_at')
-            ->orderByDesc('id')
-            ->get();
+            ->orderByDesc('id');
 
         $filename = 'report-penilaian-'.now()->format('Ymd-His').'.csv';
 
-        return response()->streamDownload(function () use ($assessments) {
+        return response()->streamDownload(function () use ($query) {
             $handle = fopen('php://output', 'w');
 
             fwrite($handle, "\xEF\xBB\xBF");
 
             fputcsv($handle, [
                 'No',
+                'Periode',
                 'Kode Surveyor',
                 'Nama Surveyor',
                 'Kode Alternatif',
@@ -79,9 +101,11 @@ class AssessmentReportController extends Controller
                 'Dinilai Pada',
             ]);
 
-            foreach ($assessments as $index => $assessment) {
+            $index = 0;
+            foreach ($query->cursor() as $assessment) {
                 fputcsv($handle, [
                     $index + 1,
+                    $assessment->period ? ($assessment->period->name . ' (' . $assessment->period->year . ')') : '-',
                     $assessment->surveyor?->code ?? '-',
                     $assessment->surveyor?->user?->name ?? '-',
                     $assessment->alternative?->code ?? '-',
@@ -93,6 +117,7 @@ class AssessmentReportController extends Controller
                     $assessment->notes ?: '-',
                     $assessment->assessed_at?->format('d-m-Y H:i') ?? '-',
                 ]);
+                $index++;
             }
 
             fclose($handle);
@@ -103,15 +128,37 @@ class AssessmentReportController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $assessments = $this->buildFilteredQuery($request)
+        // Tingkatkan batas waktu eksekusi dan memori khusus proses generate PDF besar
+        set_time_limit(300);
+        ini_set('memory_limit', '512M');
+
+        $query = $this->buildFilteredQuery($request)
             ->orderByDesc('assessed_at')
-            ->orderByDesc('id')
-            ->get();
+            ->orderByDesc('id');
+
+        $totalCount = (clone $query)->count();
+        $assessments = $query->cursor();
 
         $pdf = Pdf::loadView('admin.reports.assessments-pdf', [
             'assessments' => $assessments,
+            'totalCount'  => $totalCount,
             'generatedAt' => now(),
-        ])->setPaper('a4', 'landscape');
+            'filters'     => [
+                'period_id' => $request->input('period_id'),
+                'surveyor_id' => $request->input('surveyor_id'),
+                'alternative_id' => $request->input('alternative_id'),
+                'criteria_id' => $request->input('criteria_id'),
+                'sub_criteria_id' => $request->input('sub_criteria_id'),
+                'date_from' => $request->input('date_from'),
+                'date_to' => $request->input('date_to'),
+            ],
+        ])
+        ->setOptions([
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled'      => false,
+            'defaultFont'          => 'sans-serif',
+        ])
+        ->setPaper('a4', 'landscape');
 
         return $pdf->download('report-penilaian-'.now()->format('Ymd-His').'.pdf');
     }
@@ -120,11 +167,16 @@ class AssessmentReportController extends Controller
     {
         $query = Assessment::query()
             ->with([
+                'period',
                 'surveyor.user',
                 'alternative',
                 'subCriteria.criteria',
                 'assessmentAspect',
             ]);
+
+        if ($request->filled('period_id')) {
+            $query->where('period_id', (int) $request->integer('period_id'));
+        }
 
         if ($request->filled('surveyor_id')) {
             $query->where('surveyor_id', (int) $request->integer('surveyor_id'));
@@ -132,6 +184,16 @@ class AssessmentReportController extends Controller
 
         if ($request->filled('alternative_id')) {
             $query->where('alternative_id', (int) $request->integer('alternative_id'));
+        }
+
+        if ($request->filled('criteria_id')) {
+            $query->whereHas('subCriteria', function ($q) use ($request) {
+                $q->where('criteria_id', (int) $request->integer('criteria_id'));
+            });
+        }
+
+        if ($request->filled('sub_criteria_id')) {
+            $query->where('sub_criteria_id', (int) $request->integer('sub_criteria_id'));
         }
 
         if ($request->filled('date_from')) {

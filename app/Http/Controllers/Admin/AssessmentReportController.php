@@ -103,7 +103,9 @@ class AssessmentReportController extends Controller
             ]);
 
             $index = 0;
-            foreach ($query->cursor() as $assessment) {
+            // Gunakan lazy(500) agar relasi eager loading (with) dimuat per batch 500 baris,
+            // mencegah N+1 query (7500+ query) yang terjadi jika menggunakan cursor().
+            foreach ($query->lazy(500) as $assessment) {
                 fputcsv($handle, [
                     $index + 1,
                     $assessment->period ? ($assessment->period->name . ' (' . $assessment->period->year . ')') : '-',
@@ -131,14 +133,17 @@ class AssessmentReportController extends Controller
     {
         // Tingkatkan batas waktu eksekusi dan memori khusus proses generate PDF besar
         set_time_limit(300);
+        ini_set('max_execution_time', '300');
         ini_set('memory_limit', '512M');
 
         $query = $this->buildFilteredQuery($request)
             ->orderByDesc('assessed_at')
             ->orderByDesc('id');
 
-        $totalCount = (clone $query)->count();
-        $assessments = $query->cursor();
+        // Gunakan get() agar relasi eager loading dimuat sekaligus hanya dalam 6 query SQL,
+        // mencegah N+1 query yang membuat server hang/timeout di production.
+        $assessments = $query->get();
+        $totalCount = $assessments->count();
 
         $pdf = Pdf::loadView('admin.reports.assessments-pdf', [
             'assessments' => $assessments,

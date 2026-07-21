@@ -70,6 +70,7 @@
             <div class="position-relative d-inline-block shadow-sm rounded p-1 border"
                 id="photo-item-{{ md5($photo) }}">
                 <img src="{{ asset('storage/' . $photo) }}" alt="Foto penilaian" class="img-thumbnail border-0"
+                    loading="lazy" decoding="async"
                     style="width: 150px; height: 150px; object-fit: cover;"
                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                 <div class="alert alert-light-warning small mt-2" style="display:none;">

@@ -214,6 +214,8 @@
                                                                 <img src="{{ asset('storage/' . $photo) }}"
                                                                     alt="Foto penilaian {{ $assessment->alternative?->name ?? '' }}"
                                                                     class="rounded border"
+                                                                    loading="lazy"
+                                                                    decoding="async"
                                                                     style="width: 50px; height: 50px; object-fit: cover;">
                                                             </a>
                                                         @endforeach

@@ -37,7 +37,7 @@ class AssessmentReportController extends Controller
 
         $subCriterias = SubCriteria::with('criteria')
             ->orderBy('criteria_id')
-            ->orderBy('order')
+            ->orderBy('code')
             ->get();
 
         $query = $this->buildFilteredQuery($request);

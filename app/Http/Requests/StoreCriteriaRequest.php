@@ -23,11 +23,10 @@ class StoreCriteriaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'string', Rule::unique('criteria', 'code')],
+            'code' => ['nullable', 'string'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'weight' => ['required', 'numeric', 'min:0', 'max:1'],
-            'order' => ['required', 'integer', 'min:1'],
         ];
     }
 }

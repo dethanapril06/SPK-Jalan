@@ -31,13 +31,12 @@ class AssessmentReportController extends Controller
             ->orderBy('code')
             ->get();
 
-        $criterias = Criteria::orderBy('order')
-            ->orderBy('code')
+        $criterias = Criteria::orderBy('code')
             ->get();
 
         $subCriterias = SubCriteria::with('criteria')
             ->orderBy('criteria_id')
-            ->orderBy('order')
+            ->orderBy('code')
             ->get();
 
         $query = $this->buildFilteredQuery($request);

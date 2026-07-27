@@ -17,7 +17,7 @@ class SubCriteriaController extends Controller
     {
         $subCriterias = SubCriteria::with('criteria')
             ->orderBy('criteria_id')
-            ->orderBy('order')
+            ->orderBy('code')
             ->get();
 
         return view('admin.sub-criteria.index', compact('subCriterias'));
@@ -28,9 +28,13 @@ class SubCriteriaController extends Controller
      */
     public function create()
     {
-        $criterias = Criteria::orderBy('order')->get();
+        $criterias = Criteria::orderBy('code')->get();
+        $nextCodes = [];
+        foreach ($criterias as $criteria) {
+            $nextCodes[$criteria->id] = SubCriteria::generateNextCode($criteria->id);
+        }
 
-        return view('admin.sub-criteria.create', compact('criterias'));
+        return view('admin.sub-criteria.create', compact('criterias', 'nextCodes'));
     }
 
     /**
@@ -38,7 +42,10 @@ class SubCriteriaController extends Controller
      */
     public function store(StoreSubCriteriaRequest $request)
     {
-        SubCriteria::create($request->validated());
+        $data = $request->validated();
+        $data['code'] = SubCriteria::generateNextCode((int) $data['criteria_id']);
+
+        SubCriteria::create($data);
 
         return redirect()->route('admin.sub-criteria.index')
             ->with('success', 'Sub kriteria berhasil ditambahkan.');
@@ -64,7 +71,7 @@ class SubCriteriaController extends Controller
      */
     public function edit(SubCriteria $subCriteria)
     {
-        $criterias = Criteria::orderBy('order')->get();
+        $criterias = Criteria::orderBy('code')->get();
 
         return view('admin.sub-criteria.edit', compact('subCriteria', 'criterias'));
     }
@@ -74,7 +81,8 @@ class SubCriteriaController extends Controller
      */
     public function update(UpdateSubCriteriaRequest $request, SubCriteria $subCriteria)
     {
-        $subCriteria->update($request->validated());
+        $data = $request->validated();
+        $subCriteria->update($data);
 
         return redirect()->route('admin.sub-criteria.index')
             ->with('success', 'Sub kriteria berhasil diperbarui.');

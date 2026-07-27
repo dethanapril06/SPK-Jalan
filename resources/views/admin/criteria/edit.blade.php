@@ -34,7 +34,11 @@
                 <div class="card-content">
                     <div class="card-body">
                         <div class="alert alert-light-info color-info" role="alert">
-                            Total bobot seluruh kriteria maksimal 1.00.
+                            Total bobot seluruh kriteria maksimal <strong>1.00</strong>.
+                            <div class="mt-1 small">
+                                Total Bobot Kriteria Lain: <span id="existingWeightText" class="fw-bold">{{ number_format($totalExistingWeight, 2) }}</span> | 
+                                Batas Maksimal Bobot Kriteria Ini: <span id="remainingWeightText" class="fw-bold">{{ number_format(max(0, 1.0 - $totalExistingWeight), 2) }}</span>
+                            </div>
                         </div>
 
                         @if ($errors->any())
@@ -58,15 +62,12 @@
                                     <div class="col-md-6 col-12">
                                         <div class="form-group">
                                             <label for="code">Kode Kriteria</label>
-                                            <input type="text" class="form-control @error('code') is-invalid @enderror"
-                                                placeholder="Contoh: K1" id="code" name="code"
-                                                value="{{ old('code', $criteria->code) }}" maxlength="50" required>
-                                            @error('code')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
+                                            <input type="text" class="form-control bg-light" id="code" name="code"
+                                                value="{{ $criteria->code }}" readonly>
+                                            <small class="text-muted">Kode kriteria tidak dapat diubah.</small>
                                         </div>
                                     </div>
-                                    <div class="col-12">
+                                    <div class="col-md-6 col-12">
                                         <div class="form-group">
                                             <label for="name">Nama Kriteria</label>
                                             <input type="text" class="form-control @error('name') is-invalid @enderror"
@@ -79,25 +80,16 @@
                                     </div>
                                     <div class="col-md-6 col-12">
                                         <div class="form-group">
-                                            <label for="weight">Bobot</label>
+                                            <label for="weight">Bobot Kriteria</label>
                                             <input type="number" step="0.01" min="0" max="1"
                                                 class="form-control @error('weight') is-invalid @enderror"
                                                 placeholder="Contoh: 0.30" id="weight" name="weight"
                                                 value="{{ old('weight', $criteria->weight) }}" required>
-                                            <small class="text-muted">Gunakan rentang 0 sampai 1.</small>
+                                            <div id="weightFeedback" class="invalid-feedback"></div>
+                                            <small id="weightHelpText" class="text-muted d-block mt-1">
+                                                Estimasi Total Bobot Setelah Diubah: <strong id="calculatedTotalText">1.00</strong>
+                                            </small>
                                             @error('weight')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 col-12">
-                                        <div class="form-group">
-                                            <label for="order">Urutan Tampil</label>
-                                            <input type="number" min="1"
-                                                class="form-control @error('order') is-invalid @enderror"
-                                                placeholder="Contoh: 1" id="order" name="order"
-                                                value="{{ old('order', $criteria->order) }}" required>
-                                            @error('order')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
@@ -115,7 +107,7 @@
                                     <div class="col-12 d-flex justify-content-end">
                                         <a href="{{ route('admin.criteria.index') }}"
                                             class="btn btn-light-secondary me-1 mb-1">Batal</a>
-                                        <button type="submit" class="btn btn-primary me-1 mb-1">Simpan Perubahan</button>
+                                        <button type="submit" id="btnSubmit" class="btn btn-primary me-1 mb-1">Simpan Perubahan</button>
                                     </div>
                                 </div>
                             </div>
@@ -125,4 +117,37 @@
             </div>
         </section>
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const existingWeight = {{ $totalExistingWeight }};
+                const weightInput = document.getElementById('weight');
+                const calculatedTotalText = document.getElementById('calculatedTotalText');
+                const weightFeedback = document.getElementById('weightFeedback');
+                const btnSubmit = document.getElementById('btnSubmit');
+
+                function validateWeight() {
+                    const inputVal = parseFloat(weightInput.value) || 0;
+                    const totalWeight = existingWeight + inputVal;
+                    
+                    calculatedTotalText.textContent = totalWeight.toFixed(2);
+
+                    if (totalWeight > 1.0001) {
+                        weightInput.classList.add('is-invalid');
+                        weightFeedback.textContent = `Total bobot akan menjadi ${totalWeight.toFixed(2)} (melebihi batas maksimal 1.00). Silakan kurangi bobot!`;
+                        btnSubmit.disabled = true;
+                    } else {
+                        weightInput.classList.remove('is-invalid');
+                        weightFeedback.textContent = '';
+                        btnSubmit.disabled = false;
+                    }
+                }
+
+                weightInput.addEventListener('input', validateWeight);
+                weightInput.addEventListener('change', validateWeight);
+                validateWeight();
+            });
+        </script>
+    @endpush
 @endsection

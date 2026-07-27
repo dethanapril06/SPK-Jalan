@@ -119,6 +119,8 @@ Route::middleware(['auth', 'role:admin'])
         Route::delete('/mfep/{calculation}', [AdminMfepCalculationController::class, 'destroy'])
             ->name('mfep.destroy');
         
+        Route::patch('criteria/{criteria}/weight', [AdminCriteriaController::class, 'updateWeight'])
+            ->name('criteria.update-weight');
         Route::resource('criteria', AdminCriteriaController::class)
             ->parameters(['criteria' => 'criteria']);
         Route::resource('sub-criteria', AdminSubCriteriaController::class)

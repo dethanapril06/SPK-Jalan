@@ -29,14 +29,13 @@ class UpdateSubCriteriaRequest extends FormRequest
         return [
             'criteria_id' => ['required', 'integer', Rule::exists('criteria', 'id')],
             'code' => [
-                'required',
+                'nullable',
                 'string',
                 'max:50',
                 Rule::unique('sub_criteria', 'code')->ignore($subCriteria?->id),
             ],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'order' => ['required', 'integer', 'min:1'],
         ];
     }
 }

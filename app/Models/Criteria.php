@@ -14,12 +14,24 @@ class Criteria extends Model
         'name',
         'description',
         'weight',
-        'order',
     ];
 
     protected $casts = [
         'weight' => 'decimal:2',
     ];
+
+    /**
+     * Generate Kode Kriteria berikutnya secara otomatis (K1, K2, dst.)
+     */
+    public static function generateNextCode(): string
+    {
+        $maxNumber = self::all()->map(function ($c) {
+            return (int) preg_replace('/[^0-9]/', '', $c->code);
+        })->max();
+
+        $nextNumber = ($maxNumber ?? 0) + 1;
+        return 'K' . $nextNumber;
+    }
 
     /**
      * Dapatkan sub-kriteria dari kriteria ini

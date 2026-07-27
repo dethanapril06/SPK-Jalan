@@ -53,7 +53,7 @@
                                 <div class="row">
                                     <div class="col-md-6 col-12">
                                         <div class="form-group">
-                                            <label for="criteria_id">Kriteria</label>
+                                            <label for="criteria_id">Kriteria Induk</label>
                                             <select id="criteria_id" name="criteria_id"
                                                 class="form-select @error('criteria_id') is-invalid @enderror" required>
                                                 <option value="">Pilih kriteria</option>
@@ -72,9 +72,10 @@
                                     <div class="col-md-6 col-12">
                                         <div class="form-group">
                                             <label for="code">Kode Sub Kriteria</label>
-                                            <input type="text" class="form-control @error('code') is-invalid @enderror"
-                                                placeholder="Contoh: K1.1" id="code" name="code"
-                                                value="{{ old('code', $subCriteria->code) }}" maxlength="50" required>
+                                            <input type="text" class="form-control bg-light @error('code') is-invalid @enderror"
+                                                id="code" name="code"
+                                                value="{{ old('code', $subCriteria->code) }}" readonly>
+                                            <small class="text-muted">Kode sub kriteria tidak dapat diubah.</small>
                                             @error('code')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -88,19 +89,6 @@
                                                 placeholder="Masukkan nama sub kriteria" id="name" name="name"
                                                 value="{{ old('name', $subCriteria->name) }}" required>
                                             @error('name')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6 col-12">
-                                        <div class="form-group">
-                                            <label for="order">Urutan Tampil</label>
-                                            <input type="number" min="1"
-                                                class="form-control @error('order') is-invalid @enderror"
-                                                placeholder="Contoh: 1" id="order" name="order"
-                                                value="{{ old('order', $subCriteria->order) }}" required>
-                                            @error('order')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>

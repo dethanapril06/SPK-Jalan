@@ -51,7 +51,7 @@
                                 <div class="row">
                                     <div class="col-md-6 col-12">
                                         <div class="form-group">
-                                            <label for="criteria_id">Kriteria</label>
+                                            <label for="criteria_id">Kriteria Induk</label>
                                             <select id="criteria_id" name="criteria_id"
                                                 class="form-select @error('criteria_id') is-invalid @enderror" required>
                                                 <option value="">Pilih kriteria</option>
@@ -69,10 +69,11 @@
 
                                     <div class="col-md-6 col-12">
                                         <div class="form-group">
-                                            <label for="code">Kode Sub Kriteria</label>
-                                            <input type="text" class="form-control @error('code') is-invalid @enderror"
-                                                placeholder="Contoh: K1.1" id="code" name="code"
-                                                value="{{ old('code') }}" maxlength="50" required>
+                                            <label for="code">Kode Sub Kriteria (Otomatis)</label>
+                                            <input type="text" class="form-control bg-light @error('code') is-invalid @enderror"
+                                                placeholder="Pilih kriteria terlebih dahulu" id="code" name="code"
+                                                value="{{ old('code') }}" readonly>
+                                            <small class="text-muted">Kode sub kriteria di-generate otomatis sesuai kriteria induk (contoh: K1.1).</small>
                                             @error('code')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -86,19 +87,6 @@
                                                 placeholder="Masukkan nama sub kriteria" id="name" name="name"
                                                 value="{{ old('name') }}" required>
                                             @error('name')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6 col-12">
-                                        <div class="form-group">
-                                            <label for="order">Urutan Tampil</label>
-                                            <input type="number" min="1"
-                                                class="form-control @error('order') is-invalid @enderror"
-                                                placeholder="Contoh: 1" id="order" name="order"
-                                                value="{{ old('order') }}" required>
-                                            @error('order')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
@@ -128,4 +116,26 @@
             </div>
         </section>
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const nextCodes = @json($nextCodes);
+                const criteriaSelect = document.getElementById('criteria_id');
+                const codeInput = document.getElementById('code');
+
+                function updateCode() {
+                    const selectedCriteriaId = criteriaSelect.value;
+                    if (selectedCriteriaId && nextCodes[selectedCriteriaId]) {
+                        codeInput.value = nextCodes[selectedCriteriaId];
+                    } else {
+                        codeInput.value = '';
+                    }
+                }
+
+                criteriaSelect.addEventListener('change', updateCode);
+                updateCode();
+            });
+        </script>
+    @endpush
 @endsection

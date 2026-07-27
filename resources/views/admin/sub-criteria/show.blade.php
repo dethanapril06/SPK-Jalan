@@ -52,10 +52,6 @@
                             <div>{{ $subCriteria->criteria?->name ?? '-' }}</div>
                         </div>
                         <div class="col-md-6 col-12 mb-3">
-                            <label class="form-label fw-bold">Urutan</label>
-                            <div>{{ $subCriteria->order ?? '-' }}</div>
-                        </div>
-                        <div class="col-md-6 col-12 mb-3">
                             <label class="form-label fw-bold">Deskripsi</label>
                             <div>{{ $subCriteria->description ?: '-' }}</div>
                         </div>

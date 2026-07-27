@@ -28,14 +28,13 @@ class UpdateCriteriaRequest extends FormRequest
 
         return [
             'code' => [
-                'required',
+                'nullable',
                 'string',
                 Rule::unique('criteria', 'code')->ignore($criteria?->id),
             ],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'weight' => ['required', 'numeric', 'min:0', 'max:1'],
-            'order' => ['required', 'integer', 'min:1'],
         ];
     }
 }

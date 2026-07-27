@@ -14,7 +14,7 @@ class CriteriaController extends Controller
          */
     public function index()
     {
-        $criterias = Criteria::orderBy('order')->get();
+        $criterias = Criteria::orderBy('code')->get();
         return view('admin.criteria.index', compact('criterias'));
     }
 
@@ -23,7 +23,9 @@ class CriteriaController extends Controller
      */
     public function create()
     {
-        return view('admin.criteria.create');
+        $nextCode = Criteria::generateNextCode();
+        $totalExistingWeight = (float) Criteria::sum('weight');
+        return view('admin.criteria.create', compact('nextCode', 'totalExistingWeight'));
     }
 
     /**
@@ -37,7 +39,10 @@ class CriteriaController extends Controller
                 ->withErrors(['weight' => 'Total bobot semua kriteria tidak boleh lebih dari 1.00.']);
         }
 
-        Criteria::create($request->only('code', 'name', 'description', 'weight', 'order'));
+        $data = $request->only('name', 'description', 'weight');
+        $data['code'] = Criteria::generateNextCode();
+
+        Criteria::create($data);
 
         return redirect()->route('admin.criteria.index')->with('success', 'Kriteria berhasil ditambahkan.');
     }
@@ -55,7 +60,8 @@ class CriteriaController extends Controller
      */
     public function edit(Criteria $criteria)
     {
-        return view('admin.criteria.edit', compact('criteria'));
+        $totalExistingWeight = (float) Criteria::where('id', '!=', $criteria->id)->sum('weight');
+        return view('admin.criteria.edit', compact('criteria', 'totalExistingWeight'));
     }
 
     /**
@@ -69,7 +75,9 @@ class CriteriaController extends Controller
                 ->withErrors(['weight' => 'Total bobot semua kriteria tidak boleh lebih dari 1.00.']);
         }
 
-        $criteria->update($request->only('code', 'name', 'description', 'weight', 'order'));
+        $data = $request->only('name', 'description', 'weight');
+
+        $criteria->update($data);
 
         return redirect()->route('admin.criteria.index')->with('success', 'Kriteria berhasil diperbarui.');
     }
@@ -81,6 +89,36 @@ class CriteriaController extends Controller
     {
         $criteria->delete();
         return redirect()->route('admin.criteria.index')->with('success', 'Kriteria berhasil dihapus.');
+    }
+
+    /**
+     * Update weight directly via inline edit.
+     */
+    public function updateWeight(\Illuminate\Http\Request $request, Criteria $criteria)
+    {
+        $request->validate([
+            'weight' => ['required', 'numeric', 'min:0', 'max:1'],
+        ]);
+
+        $newWeight = (float) $request->weight;
+
+        if (! $this->isTotalWeightValid($newWeight, $criteria)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Total bobot semua kriteria tidak boleh lebih dari 1.00.',
+            ], 422);
+        }
+
+        $criteria->update(['weight' => $newWeight]);
+
+        $totalWeight = (float) Criteria::sum('weight');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bobot kriteria ' . $criteria->code . ' berhasil diperbarui.',
+            'weight' => number_format($newWeight, 2),
+            'total_weight' => number_format($totalWeight, 2),
+        ]);
     }
 
     private function isTotalWeightValid(float $weight, ?Criteria $excludeCriteria = null): bool

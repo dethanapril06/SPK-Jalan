@@ -24,10 +24,9 @@ class StoreSubCriteriaRequest extends FormRequest
     {
         return [
             'criteria_id' => ['required', 'integer', Rule::exists('criteria', 'id')],
-            'code' => ['required', 'string', 'max:50', Rule::unique('sub_criteria', 'code')],
+            'code' => ['nullable', 'string', 'max:50'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'order' => ['required', 'integer', 'min:1'],
         ];
     }
 }

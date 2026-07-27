@@ -47,11 +47,6 @@
                             <div>{{ $criteria->name }}</div>
                         </div>
 
-                        <div class="col-md-4 col-12">
-                            <label class="form-label fw-bold">Urutan Tampil</label>
-                            <div>{{ $criteria->order ?? '-' }}</div>
-                        </div>
-
                         <div class="col-12">
                             <label class="form-label fw-bold">Deskripsi</label>
                             <div>{{ $criteria->description ?: '-' }}</div>

@@ -24,7 +24,7 @@ class MfepCalculationService
             ]);
 
             $alternatives = Alternative::orderBy('order')->get();
-            $criteria = Criteria::orderBy('order')->get();
+            $criteria = Criteria::orderBy('code')->get();
 
             foreach ($alternatives as $alternative) {
                 $this->calculateForAlternative($mfepCalculation, $alternative, $criteria);
@@ -49,7 +49,7 @@ class MfepCalculationService
         // Loop setiap Kriteria
         foreach ($criteria as $criterion) {
             $subCriteriaList = SubCriteria::where('criteria_id', $criterion->id)
-                ->orderBy('order')
+                ->orderBy('code')
                 ->get();
 
             $subCriteriaScores = [];

@@ -24,8 +24,10 @@ class CriteriaController extends Controller
     public function create()
     {
         $nextCode = Criteria::generateNextCode();
-        $totalExistingWeight = (float) Criteria::sum('weight');
-        return view('admin.criteria.create', compact('nextCode', 'totalExistingWeight'));
+        $existingCriterias = Criteria::orderBy('code')->get();
+        $totalExistingWeight = (float) $existingCriterias->sum('weight');
+        $existingNames = $existingCriterias->pluck('name')->map(fn($n) => mb_strtolower(trim($n)))->values()->toArray();
+        return view('admin.criteria.create', compact('nextCode', 'totalExistingWeight', 'existingCriterias', 'existingNames'));
     }
 
     /**
@@ -61,7 +63,8 @@ class CriteriaController extends Controller
     public function edit(Criteria $criteria)
     {
         $totalExistingWeight = (float) Criteria::where('id', '!=', $criteria->id)->sum('weight');
-        return view('admin.criteria.edit', compact('criteria', 'totalExistingWeight'));
+        $existingNames = Criteria::where('id', '!=', $criteria->id)->pluck('name')->map(fn($n) => mb_strtolower(trim($n)))->values()->toArray();
+        return view('admin.criteria.edit', compact('criteria', 'totalExistingWeight', 'existingNames'));
     }
 
     /**

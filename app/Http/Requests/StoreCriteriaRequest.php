@@ -24,9 +24,19 @@ class StoreCriteriaRequest extends FormRequest
     {
         return [
             'code' => ['nullable', 'string'],
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', Rule::unique('criteria', 'name')],
             'description' => ['nullable', 'string'],
             'weight' => ['required', 'numeric', 'min:0', 'max:1'],
+        ];
+    }
+
+    /**
+     * Custom validation messages in Indonesian.
+     */
+    public function messages(): array
+    {
+        return [
+            'name.unique' => 'Nama kriteria sudah ada. Silakan gunakan nama kriteria yang lain.',
         ];
     }
 }

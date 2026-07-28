@@ -68,16 +68,17 @@
                                         </div>
                                     </div>
                                     <div class="col-md-6 col-12">
-                                        <div class="form-group">
-                                            <label for="name">Nama Kriteria</label>
-                                            <input type="text" class="form-control @error('name') is-invalid @enderror"
-                                                placeholder="Masukkan nama kriteria" id="name" name="name"
-                                                value="{{ old('name', $criteria->name) }}" required>
-                                            @error('name')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
+                                         <div class="form-group">
+                                             <label for="name">Nama Kriteria</label>
+                                             <input type="text" class="form-control @error('name') is-invalid @enderror"
+                                                 placeholder="Masukkan nama kriteria" id="name" name="name"
+                                                 value="{{ old('name', $criteria->name) }}" required autocomplete="off">
+                                             <div id="nameFeedback"></div>
+                                             @error('name')
+                                                 <div class="invalid-feedback d-block">{{ $message }}</div>
+                                             @enderror
+                                         </div>
+                                     </div>
                                     <div class="col-md-6 col-12">
                                         <div class="form-group">
                                             <label for="weight">Bobot Kriteria</label>
@@ -122,31 +123,72 @@
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const existingWeight = {{ $totalExistingWeight }};
+                const existingNames = @json($existingNames);
                 const weightInput = document.getElementById('weight');
+                const nameInput = document.getElementById('name');
                 const calculatedTotalText = document.getElementById('calculatedTotalText');
                 const weightFeedback = document.getElementById('weightFeedback');
+                const nameFeedback = document.getElementById('nameFeedback');
                 const btnSubmit = document.getElementById('btnSubmit');
 
-                function validateWeight() {
+                function validateName() {
+                    const val = (nameInput.value || '').trim();
+                    const typedName = val.toLowerCase();
+
+                    if (!val) {
+                        nameInput.classList.remove('is-invalid', 'is-valid');
+                        if (nameFeedback) {
+                            nameFeedback.className = '';
+                            nameFeedback.textContent = '';
+                        }
+                        return true;
+                    }
+
+                    if (existingNames.includes(typedName)) {
+                        nameInput.classList.add('is-invalid');
+                        nameInput.classList.remove('is-valid');
+                        if (nameFeedback) {
+                            nameFeedback.className = 'invalid-feedback d-block';
+                            nameFeedback.textContent = `⚠️ Nama kriteria "${val}" sudah digunakan kriteria lain!`;
+                        }
+                        return false;
+                    } else {
+                        nameInput.classList.remove('is-invalid');
+                        nameInput.classList.add('is-valid');
+                        if (nameFeedback) {
+                            nameFeedback.className = 'valid-feedback d-block';
+                            nameFeedback.textContent = `✓ Nama kriteria "${val}" tersedia.`;
+                        }
+                        return true;
+                    }
+                }
+
+                function validateForm() {
+                    const isNameValid = validateName();
+
+                    let isWeightValid = true;
                     const inputVal = parseFloat(weightInput.value) || 0;
                     const totalWeight = existingWeight + inputVal;
-                    
                     calculatedTotalText.textContent = totalWeight.toFixed(2);
 
                     if (totalWeight > 1.0001) {
                         weightInput.classList.add('is-invalid');
                         weightFeedback.textContent = `Total bobot akan menjadi ${totalWeight.toFixed(2)} (melebihi batas maksimal 1.00). Silakan kurangi bobot!`;
-                        btnSubmit.disabled = true;
+                        isWeightValid = false;
                     } else {
                         weightInput.classList.remove('is-invalid');
                         weightFeedback.textContent = '';
-                        btnSubmit.disabled = false;
                     }
+
+                    btnSubmit.disabled = !(isNameValid && isWeightValid);
                 }
 
-                weightInput.addEventListener('input', validateWeight);
-                weightInput.addEventListener('change', validateWeight);
-                validateWeight();
+                ['input', 'keyup', 'change', 'paste'].forEach(evt => {
+                    nameInput.addEventListener(evt, validateForm);
+                    weightInput.addEventListener(evt, validateForm);
+                });
+
+                validateForm();
             });
         </script>
     @endpush

@@ -34,7 +34,17 @@ class SubCriteriaController extends Controller
             $nextCodes[$criteria->id] = SubCriteria::generateNextCode($criteria->id);
         }
 
-        return view('admin.sub-criteria.create', compact('criterias', 'nextCodes'));
+        $existingSubCriterias = SubCriteria::with('criteria')
+            ->orderBy('criteria_id')
+            ->orderBy('code')
+            ->get();
+
+        $existingNamesMap = [];
+        foreach ($existingSubCriterias as $sc) {
+            $existingNamesMap[$sc->criteria_id][] = mb_strtolower(trim($sc->name));
+        }
+
+        return view('admin.sub-criteria.create', compact('criterias', 'nextCodes', 'existingSubCriterias', 'existingNamesMap'));
     }
 
     /**
@@ -72,8 +82,13 @@ class SubCriteriaController extends Controller
     public function edit(SubCriteria $subCriteria)
     {
         $criterias = Criteria::orderBy('code')->get();
+        $otherSubCriterias = SubCriteria::where('id', '!=', $subCriteria->id)->get();
+        $existingNamesMap = [];
+        foreach ($otherSubCriterias as $sc) {
+            $existingNamesMap[$sc->criteria_id][] = mb_strtolower(trim($sc->name));
+        }
 
-        return view('admin.sub-criteria.edit', compact('subCriteria', 'criterias'));
+        return view('admin.sub-criteria.edit', compact('subCriteria', 'criterias', 'existingNamesMap'));
     }
 
     /**

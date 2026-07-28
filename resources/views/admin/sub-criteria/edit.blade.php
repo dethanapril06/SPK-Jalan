@@ -83,16 +83,17 @@
                                     </div>
 
                                     <div class="col-12">
-                                        <div class="form-group">
-                                            <label for="name">Nama Sub Kriteria</label>
-                                            <input type="text" class="form-control @error('name') is-invalid @enderror"
-                                                placeholder="Masukkan nama sub kriteria" id="name" name="name"
-                                                value="{{ old('name', $subCriteria->name) }}" required>
-                                            @error('name')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
+                                         <div class="form-group">
+                                             <label for="name">Nama Sub Kriteria</label>
+                                             <input type="text" class="form-control @error('name') is-invalid @enderror"
+                                                 placeholder="Masukkan nama sub kriteria" id="name" name="name"
+                                                 value="{{ old('name', $subCriteria->name) }}" required autocomplete="off">
+                                             <div id="nameFeedback"></div>
+                                             @error('name')
+                                                 <div class="invalid-feedback d-block">{{ $message }}</div>
+                                             @enderror
+                                         </div>
+                                     </div>
 
                                     <div class="col-12">
                                         <div class="form-group">
@@ -108,7 +109,7 @@
                                     <div class="col-12 d-flex justify-content-end">
                                         <a href="{{ route('admin.sub-criteria.index') }}"
                                             class="btn btn-light-secondary me-1 mb-1">Batal</a>
-                                        <button type="submit" class="btn btn-primary me-1 mb-1">Simpan Perubahan</button>
+                                        <button type="submit" id="btnSubmit" class="btn btn-primary me-1 mb-1">Simpan Perubahan</button>
                                     </div>
                                 </div>
                             </div>
@@ -118,4 +119,59 @@
             </div>
         </section>
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const existingNamesMap = @json($existingNamesMap);
+                const criteriaSelect = document.getElementById('criteria_id');
+                const nameInput = document.getElementById('name');
+                const nameFeedback = document.getElementById('nameFeedback');
+                const btnSubmit = document.getElementById('btnSubmit');
+
+                function validateName() {
+                    const selectedCriteriaId = criteriaSelect.value;
+                    const val = (nameInput.value || '').trim();
+                    const typedName = val.toLowerCase();
+                    const existingNames = selectedCriteriaId ? (existingNamesMap[selectedCriteriaId] || []) : [];
+
+                    if (!val) {
+                        nameInput.classList.remove('is-invalid', 'is-valid');
+                        if (nameFeedback) {
+                            nameFeedback.className = '';
+                            nameFeedback.textContent = '';
+                        }
+                        btnSubmit.disabled = false;
+                        return true;
+                    }
+
+                    if (selectedCriteriaId && existingNames.includes(typedName)) {
+                        nameInput.classList.add('is-invalid');
+                        nameInput.classList.remove('is-valid');
+                        if (nameFeedback) {
+                            nameFeedback.className = 'invalid-feedback d-block';
+                            nameFeedback.textContent = `⚠️ Nama sub kriteria "${val}" sudah digunakan pada kriteria ini!`;
+                        }
+                        btnSubmit.disabled = true;
+                        return false;
+                    } else {
+                        nameInput.classList.remove('is-invalid');
+                        nameInput.classList.add('is-valid');
+                        if (nameFeedback) {
+                            nameFeedback.className = 'valid-feedback d-block';
+                            nameFeedback.textContent = `✓ Nama sub kriteria "${val}" tersedia.`;
+                        }
+                        btnSubmit.disabled = false;
+                        return true;
+                    }
+                }
+
+                ['input', 'keyup', 'change', 'paste'].forEach(evt => {
+                    nameInput.addEventListener(evt, validateName);
+                });
+                criteriaSelect.addEventListener('change', validateName);
+                validateName();
+            });
+        </script>
+    @endpush
 @endsection

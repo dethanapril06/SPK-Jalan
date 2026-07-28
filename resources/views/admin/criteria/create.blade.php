@@ -27,93 +27,143 @@
             </div>
         </div>
         <section class="section">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="card-title">Form Tambah Kriteria</h4>
-                </div>
-                <div class="card-content">
-                    <div class="card-body">
-                        <div class="alert alert-light-info color-info" role="alert">
-                            Total bobot seluruh kriteria maksimal <strong>1.00</strong>.
-                            <div class="mt-1 small">
-                                Total Bobot Kriteria Lain: <span id="existingWeightText" class="fw-bold">{{ number_format($totalExistingWeight, 2) }}</span> | 
-                                Sisa Bobot Tersedia: <span id="remainingWeightText" class="fw-bold">{{ number_format(max(0, 1.0 - $totalExistingWeight), 2) }}</span>
-                            </div>
+            <div class="row">
+                {{-- Form Tambah Kriteria --}}
+                <div class="col-lg-6 col-12">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h4 class="card-title">Form Tambah Kriteria</h4>
                         </div>
-
-                        @if ($errors->any())
-                            <div class="alert alert-light-danger color-danger alert-dismissible fade show" role="alert">
-                                <ul class="mb-0">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                    aria-label="Close"></button>
-                            </div>
-                        @endif
-
-                        <form class="form form-vertical" method="POST" action="{{ route('admin.criteria.store') }}">
-                            @csrf
-                            <div class="form-body">
-                                <div class="row">
-                                    <div class="col-md-6 col-12">
-                                        <div class="form-group">
-                                            <label for="code">Kode Kriteria (Otomatis)</label>
-                                            <input type="text" class="form-control bg-light"
-                                                id="code" name="code"
-                                                value="{{ $nextCode }}" readonly>
-                                            <small class="text-muted">Kode kriteria di-generate otomatis oleh sistem.</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 col-12">
-                                        <div class="form-group">
-                                            <label for="name">Nama Kriteria</label>
-                                            <input type="text" class="form-control @error('name') is-invalid @enderror"
-                                                placeholder="Masukkan nama kriteria" id="name" name="name"
-                                                value="{{ old('name') }}" required>
-                                            @error('name')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 col-12">
-                                        <div class="form-group">
-                                            <label for="weight">Bobot Kriteria</label>
-                                            @php
-                                                $defaultWeight = number_format(max(0, 1.0 - $totalExistingWeight), 2, '.', '');
-                                            @endphp
-                                            <input type="number" step="0.01" min="0" max="1"
-                                                class="form-control @error('weight') is-invalid @enderror"
-                                                placeholder="Contoh: 0.30" id="weight" name="weight"
-                                                value="{{ old('weight', $defaultWeight) }}" required>
-                                            <div id="weightFeedback" class="invalid-feedback"></div>
-                                            <small id="weightHelpText" class="text-muted d-block mt-1">
-                                                Estimasi Total Bobot Setelah Ditambah: <strong id="calculatedTotalText">1.00</strong>
-                                            </small>
-                                            @error('weight')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <label for="description">Deskripsi</label>
-                                            <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description"
-                                                rows="3" placeholder="Masukkan deskripsi kriteria (opsional)">{{ old('description') }}</textarea>
-                                            @error('description')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-12 d-flex justify-content-end">
-                                        <a href="{{ route('admin.criteria.index') }}"
-                                            class="btn btn-light-secondary me-1 mb-1">Batal</a>
-                                        <button type="submit" id="btnSubmit" class="btn btn-primary me-1 mb-1">Simpan</button>
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="alert alert-light-info color-info" role="alert">
+                                    Total bobot seluruh kriteria maksimal <strong>1.00</strong>.
+                                    <div class="mt-1 small">
+                                        Total Bobot Kriteria Lain: <span id="existingWeightText" class="fw-bold">{{ number_format($totalExistingWeight, 2) }}</span> | 
+                                        Sisa Bobot Tersedia: <span id="remainingWeightText" class="fw-bold">{{ number_format(max(0, 1.0 - $totalExistingWeight), 2) }}</span>
                                     </div>
                                 </div>
+
+                                @if ($errors->any())
+                                    <div class="alert alert-light-danger color-danger alert-dismissible fade show" role="alert">
+                                        <ul class="mb-0">
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                            aria-label="Close"></button>
+                                    </div>
+                                @endif
+
+                                <form class="form form-vertical" method="POST" action="{{ route('admin.criteria.store') }}">
+                                    @csrf
+                                    <div class="form-body">
+                                        <div class="row">
+                                            <div class="col-md-6 col-12">
+                                                <div class="form-group">
+                                                    <label for="code">Kode Kriteria (Otomatis)</label>
+                                                    <input type="text" class="form-control bg-light"
+                                                        id="code" name="code"
+                                                        value="{{ $nextCode }}" readonly>
+                                                    <small class="text-muted">Kode kriteria di-generate otomatis oleh sistem.</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-12">
+                                                <div class="form-group">
+                                                    <label for="name">Nama Kriteria</label>
+                                                    <input type="text" class="form-control @error('name') is-invalid @enderror"
+                                                        placeholder="Masukkan nama kriteria" id="name" name="name"
+                                                        value="{{ old('name') }}" required autocomplete="off">
+                                                    <div id="nameFeedback"></div>
+                                                    @error('name')
+                                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <label for="weight">Bobot Kriteria</label>
+                                                    @php
+                                                        $defaultWeight = number_format(max(0, 1.0 - $totalExistingWeight), 2, '.', '');
+                                                    @endphp
+                                                    <input type="number" step="0.01" min="0" max="1"
+                                                        class="form-control @error('weight') is-invalid @enderror"
+                                                        placeholder="Contoh: 0.30" id="weight" name="weight"
+                                                        value="{{ old('weight', $defaultWeight) }}" required>
+                                                    <div id="weightFeedback" class="invalid-feedback"></div>
+                                                    <small id="weightHelpText" class="text-muted d-block mt-1">
+                                                        Estimasi Total Bobot Setelah Ditambah: <strong id="calculatedTotalText">1.00</strong>
+                                                    </small>
+                                                    @error('weight')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <label for="description">Deskripsi</label>
+                                                    <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description"
+                                                        rows="3" placeholder="Masukkan deskripsi kriteria (opsional)">{{ old('description') }}</textarea>
+                                                    @error('description')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                            <div class="col-12 d-flex justify-content-end">
+                                                <a href="{{ route('admin.criteria.index') }}"
+                                                    class="btn btn-light-secondary me-1 mb-1">Batal</a>
+                                                <button type="submit" id="btnSubmit" class="btn btn-primary me-1 mb-1">Simpan</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
                             </div>
-                        </form>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Tabel Kriteria Eksisting --}}
+                <div class="col-lg-6 col-12 mt-4 mt-lg-0">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title mb-0">Daftar Kriteria Eksisting</h4>
+                            <span class="badge bg-light-primary text-primary fw-bold">{{ $existingCriterias->count() }} Kriteria</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Kode</th>
+                                            <th>Nama Kriteria</th>
+                                            <th>Bobot</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse ($existingCriterias as $item)
+                                            <tr>
+                                                <td>{{ $loop->iteration }}</td>
+                                                <td><span class="badge bg-light-primary text-primary fw-bold">{{ $item->code }}</span></td>
+                                                <td>{{ $item->name }}</td>
+                                                <td>{{ number_format((float) $item->weight, 2) }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted">Belum ada data kriteria.</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="fw-bold table-light">
+                                            <td colspan="3" class="text-end">Total Bobot Eksisting:</td>
+                                            <td>{{ number_format($totalExistingWeight, 2) }}</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -124,31 +174,72 @@
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const existingWeight = {{ $totalExistingWeight }};
+                const existingNames = @json($existingNames);
                 const weightInput = document.getElementById('weight');
+                const nameInput = document.getElementById('name');
                 const calculatedTotalText = document.getElementById('calculatedTotalText');
                 const weightFeedback = document.getElementById('weightFeedback');
+                const nameFeedback = document.getElementById('nameFeedback');
                 const btnSubmit = document.getElementById('btnSubmit');
 
-                function validateWeight() {
+                function validateName() {
+                    const val = (nameInput.value || '').trim();
+                    const typedName = val.toLowerCase();
+
+                    if (!val) {
+                        nameInput.classList.remove('is-invalid', 'is-valid');
+                        if (nameFeedback) {
+                            nameFeedback.className = '';
+                            nameFeedback.textContent = '';
+                        }
+                        return true;
+                    }
+
+                    if (existingNames.includes(typedName)) {
+                        nameInput.classList.add('is-invalid');
+                        nameInput.classList.remove('is-valid');
+                        if (nameFeedback) {
+                            nameFeedback.className = 'invalid-feedback d-block';
+                            nameFeedback.textContent = `⚠️ Nama kriteria "${val}" sudah ada dalam database! Silakan gunakan nama lain.`;
+                        }
+                        return false;
+                    } else {
+                        nameInput.classList.remove('is-invalid');
+                        nameInput.classList.add('is-valid');
+                        if (nameFeedback) {
+                            nameFeedback.className = 'valid-feedback d-block';
+                            nameFeedback.textContent = `✓ Nama kriteria "${val}" belum digunakan (tersedia).`;
+                        }
+                        return true;
+                    }
+                }
+
+                function validateForm() {
+                    const isNameValid = validateName();
+
+                    let isWeightValid = true;
                     const inputVal = parseFloat(weightInput.value) || 0;
                     const totalWeight = existingWeight + inputVal;
-                    
                     calculatedTotalText.textContent = totalWeight.toFixed(2);
 
                     if (totalWeight > 1.0001) {
                         weightInput.classList.add('is-invalid');
                         weightFeedback.textContent = `Total bobot akan menjadi ${totalWeight.toFixed(2)} (melebihi batas maksimal 1.00). Silakan kurangi bobot!`;
-                        btnSubmit.disabled = true;
+                        isWeightValid = false;
                     } else {
                         weightInput.classList.remove('is-invalid');
                         weightFeedback.textContent = '';
-                        btnSubmit.disabled = false;
                     }
+
+                    btnSubmit.disabled = !(isNameValid && isWeightValid);
                 }
 
-                weightInput.addEventListener('input', validateWeight);
-                weightInput.addEventListener('change', validateWeight);
-                validateWeight();
+                ['input', 'keyup', 'change', 'paste'].forEach(evt => {
+                    nameInput.addEventListener(evt, validateForm);
+                    weightInput.addEventListener(evt, validateForm);
+                });
+
+                validateForm();
             });
         </script>
     @endpush

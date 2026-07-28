@@ -25,8 +25,23 @@ class StoreSubCriteriaRequest extends FormRequest
         return [
             'criteria_id' => ['required', 'integer', Rule::exists('criteria', 'id')],
             'code' => ['nullable', 'string', 'max:50'],
-            'name' => ['required', 'string', 'max:255'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('sub_criteria', 'name')->where('criteria_id', $this->criteria_id),
+            ],
             'description' => ['nullable', 'string'],
+        ];
+    }
+
+    /**
+     * Custom validation messages in Indonesian.
+     */
+    public function messages(): array
+    {
+        return [
+            'name.unique' => 'Nama sub kriteria tersebut sudah ada pada kriteria induk yang dipilih.',
         ];
     }
 }
